@@ -29,6 +29,8 @@ Commands:
   export-samples     Export sample data
 ```
 
+Wird das Passwort nicht als Parameter angegeben, so wird im Anschluss danach gefragt.
+
 ### Anonymisierung
 
 Die angegebenen IDs der Patienten als auch ermittelten IDs der Proben werden anonymisiert.
