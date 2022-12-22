@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"github.com/alecthomas/kong"
 	_ "github.com/go-sql-driver/mysql"
@@ -93,69 +94,91 @@ func main() {
 
 	switch context.Command() {
 	case "export-patients":
-		patients := InitPatients(db)
-		result := []PatientData{}
-		if cli.Append {
-			file, err := os.Open(cli.Filename)
-			defer file.Close()
-			if err != nil {
-				log.Fatalln("Datei kann nicht geöffnet werden")
-			}
-			if gocsv.UnmarshalFile(file, &result) != nil {
-				log.Fatalln("Datei kann nicht gelesen werden")
-			}
-		}
-
-		file, err := os.Create(cli.Filename)
-		if err != nil {
-			log.Fatalln("Datei kann nicht geöffnet werden")
-		}
-
-		for _, patientId := range cli.PatientId {
-			if data, err := patients.Fetch(patientId); err == nil {
-				result = append(result, *data)
-			} else {
-				log.Print(err.Error())
-			}
-		}
-
-		if err := gocsv.MarshalFile(result, file); err != nil {
-			log.Fatalln("In die Datei kann nicht geschrieben werden")
-		}
+		handleCommand(cli, db, fetchAllPatientData)
 	case "export-samples":
-		patients := InitSamples(db)
-		result := []SampleData{}
-		if cli.Append {
-			file, err := os.Open(cli.Filename)
-			defer file.Close()
-			if err != nil {
-				log.Fatalln("Datei kann nicht geöffnet werden")
-			}
-			if gocsv.UnmarshalFile(file, &result) != nil {
-				log.Fatalln("Datei kann nicht gelesen werden")
-			}
-		}
-
-		file, err := os.Create(cli.Filename)
-		if err != nil {
-			log.Fatalln("Datei kann nicht geöffnet werden")
-		}
-
-		for _, patientId := range cli.PatientId {
-			if data, err := patients.Fetch(patientId); err == nil {
-				for _, d := range data {
-					result = append(result, d)
-				}
-			} else {
-				log.Print(err.Error())
-			}
-		}
-
-		if err := gocsv.MarshalFile(result, file); err != nil {
-			log.Fatalln("In die Datei kann nicht geschrieben werden")
-		}
+		handleCommand(cli, db, fetchAllSampleData)
 	default:
 
 	}
 
+}
+
+// Bearbeitet die Ausführung und ermittelt Daten abhängig von übergebener Funktion
+func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc func(patientIds []string, db *sql.DB) ([]D, error)) {
+	var result []D
+	if cli.Append {
+		if r, err := readFile(cli.Filename, result); err == nil {
+			result = r
+		} else {
+			log.Fatalln(err.Error())
+		}
+	}
+
+	if r, err := fetchFunc(cli.PatientId, db); err == nil {
+		result = append(result, r...)
+	} else {
+		log.Fatalln(err.Error())
+	}
+
+	if err := writeFile(cli.Filename, result); err != nil {
+		log.Fatalln(err.Error())
+	}
+}
+
+// Ermittelt alle Patientendaten von allen angegebenen Patienten
+func fetchAllPatientData(patientIds []string, db *sql.DB) ([]PatientData, error) {
+	patients := InitPatients(db)
+	result := []PatientData{}
+	for _, patientId := range cli.PatientId {
+		if data, err := patients.Fetch(patientId); err == nil {
+			result = append(result, *data)
+		} else {
+			log.Println(err.Error())
+		}
+	}
+	return result, nil
+}
+
+// Ermittelt alle Probendaten von allen angegebenen Patienten
+func fetchAllSampleData(patientIds []string, db *sql.DB) ([]SampleData, error) {
+	samples := InitSamples(db)
+	result := []SampleData{}
+	for _, patientId := range cli.PatientId {
+		if data, err := samples.Fetch(patientId); err == nil {
+			for _, d := range data {
+				result = append(result, d)
+			}
+		} else {
+			log.Println(err.Error())
+		}
+	}
+	return result, nil
+}
+
+// Liest eine bestehende Datei ein
+func readFile[D PatientData | SampleData](filename string, data []D) ([]D, error) {
+	file, err := os.Open(cli.Filename)
+	defer file.Close()
+	if err != nil {
+		return nil, errors.New("file: Datei kann nicht geöffnet werden")
+	}
+	if gocsv.UnmarshalFile(file, &data) != nil {
+		return nil, errors.New("file: Datei kann nicht gelesen werden")
+	}
+
+	return data, nil
+}
+
+// Schreibt Daten in CSV/TSV Datei
+func writeFile[D PatientData | SampleData](filename string, data []D) error {
+	file, err := os.Create(cli.Filename)
+	if err != nil {
+		return errors.New("file: Datei kann nicht geöffnet werden")
+	}
+
+	if err := gocsv.MarshalFile(data, file); err != nil {
+		return errors.New("file: In die Datei kann nicht geschrieben werden")
+	}
+
+	return nil
 }

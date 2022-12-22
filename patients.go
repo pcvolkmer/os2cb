@@ -83,6 +83,7 @@ func (patients *Patients) Fetch(patientId string) (*PatientData, error) {
 	return nil, errors.New("patient not found")
 }
 
+// Liest den Karnovsky-Grad des Patienten aus und wandelt diesen in ECOG
 func fetchEcogStatus(patientId string) string {
 	query := `SELECT dutb.karnofsky FROM prozedur pro
 		JOIN patient pat on pro.patient_id = pat.id
@@ -105,6 +106,7 @@ func fetchEcogStatus(patientId string) string {
 	return "NA"
 }
 
+// Ermittelt den ECOG anhand des Karnovsky-Grads
 func karnovskyToEcog(karnovsky string) string {
 
 	// Plain percent number
@@ -130,6 +132,7 @@ func karnovskyToEcog(karnovsky string) string {
 	return "NA"
 }
 
+// Ermittelt Diagnosedaten zu den Patientendaten und gibt diese zurück
 func appendDiagnoseDaten(patientId string, data *PatientData) *PatientData {
 	query := `SELECT icdo3histologie, beginndatum, icd10, fernmetastasen, pcve.shortdesc as diagnose
 		FROM prozedur

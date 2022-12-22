@@ -19,7 +19,7 @@ func InitSamples(db *sql.DB) Samples {
 	}
 }
 
-// Aktuell nur die letzte Diagnose
+// Aktuell alle Diagnosen/Erkrankungen des Patienten
 func (samples *Samples) Fetch(patientId string) ([]SampleData, error) {
 	checkQuery := `SELECT id FROM patient WHERE patienten_id = ?`
 	if row := db.QueryRow(checkQuery, patientId); row != nil {
@@ -48,7 +48,7 @@ func (samples *Samples) Fetch(patientId string) ([]SampleData, error) {
 		}
 		return result, nil
 	}
-	return nil, errors.New("No data found")
+	return nil, errors.New("fetch: No data found")
 }
 
 func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, error) {
@@ -133,7 +133,7 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 					}
 				}
 
-				// SAMPLE_METHOD - Nur bekannt "Biopsie" und "Resektat". Andere mögliche Werte?
+				// SAMPLE_METHOD - nur bekannt "Biopsie" und "Resektat". Andere mögliche Werte?
 				if value, err := entnahmemethode.Value(); err == nil && value != nil {
 					if value == "B" {
 						data.SampleMethod = "Biopsie"
@@ -168,7 +168,7 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 				}
 
 				// SEQUENCING_DNA_PANEL / FUSION_RNA_PANEL
-				// Initial values
+				// Initial values - wenn nicht anders angegeben
 				data.SequencingDnaPanel = "NA"
 				data.FusionRnaPanel = "NA"
 				if value, err := nukleinsaeure.Value(); err == nil && value != nil {
@@ -185,6 +185,7 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 				}
 
 				// SEQUENCING_DNA_PLATFORM + SEQUENCING_RNA_PLATFORM
+				// Aktuell keine Dokumentation
 				data.SequencingDnaPlatform = "NA"
 				data.SequencingRnaPlatform = "NA"
 
@@ -220,6 +221,7 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 	return nil, errors.New("Kann Daten nicht abrufen")
 }
 
+// Schreibt die Werte TPS, ICS und CPS in bestehende Probendaten und gibt diese dann wieder zurück.
 func immunhisto(prozedurId string, sampleData *SampleData) *SampleData {
 	query := `SELECT gen, tps, ic_score, cps FROM dk_molekularimmunhisto
     	JOIN prozedur_prozedur pp ON pp.prozedur2 = dk_molekularimmunhisto.id
@@ -259,6 +261,7 @@ func immunhisto(prozedurId string, sampleData *SampleData) *SampleData {
 	return sampleData
 }
 
+// Schreibt die Werte TPS_PANEL, MSI_PCR und MSI_IG in bestehende Probendaten und gibt diese dann wieder zurück.
 func msi(prozedurId string, sampleData *SampleData) *SampleData {
 	query := `SELECT ergebnismsi, feldwert FROM prozedur_prozedur pp
 		JOIN dk_molekulargenetik ON pp.prozedur1 = dk_molekulargenetik.id
