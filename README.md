@@ -29,6 +29,12 @@ Commands:
   export-samples     Export sample data
 ```
 
+### Anonymisierung
+
+Die angegebenen IDs der Patienten als auch ermittelten IDs der Proben werden anonymisiert.
+Dazu werden aus einer ID ein SHA256-Hash gebildet und von diesem die ersten 10 Zeichen zuzüglich Prefix `WUE_` für den
+Export verwendet.
+
 ## Bekannte Probleme
 
 Der Export als CSV-Datei erfolgt derzeit noch unter Verwendung von UTF-8, was zu Problemen bei der Darstellung von
