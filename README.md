@@ -28,3 +28,8 @@ Commands:
   export-patients    Export patient data
   export-samples     Export sample data
 ```
+
+## Bekannte Probleme
+
+Der Export als CSV-Datei erfolgt derzeit noch unter Verwendung von UTF-8, was zu Problemen bei der Darstellung von
+Umlauten beim Öffnen mit MS Excel führt.
