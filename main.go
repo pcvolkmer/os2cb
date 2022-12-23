@@ -71,10 +71,14 @@ func main() {
 	}
 
 	if dbx, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", cli.User, cli.Password, cli.Host, cli.Port, cli.Database)); err == nil {
-		db = dbx
-		defer db.Close()
+		if err := dbx.Ping(); err == nil {
+			db = dbx
+			defer db.Close()
+		} else {
+			log.Fatalf("Cannot connect to Database: %s\n", err.Error())
+		}
 	} else {
-		return
+		log.Fatalf("Cannot connect to Database: %s\n", err.Error())
 	}
 
 	gocsv.SetCSVWriter(func(out io.Writer) *gocsv.SafeCSVWriter {
