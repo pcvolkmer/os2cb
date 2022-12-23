@@ -22,14 +22,21 @@ Flags:
       --patient-id=PATIENT-ID,...    PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs
       --filename=STRING              Exportiere in diese Datei
       --append                       An bestehende Datei anhängen
-      --csv                          Verwende CSV-Format anstelle TSV-Format. Trennung mit ';' für MS Excel
+      --csv                          Verwende CSV-Format anstelle TSV-Format (UTF-16 und Trennung mit ';' zur Verwendung mit MS Excel)
 
 Commands:
   export-patients    Export patient data
   export-samples     Export sample data
 ```
 
+### Hinweis zu Passwörtern
+
 Wird das Passwort nicht als Parameter angegeben, so wird im Anschluss danach gefragt.
+
+### Hinweis zum Export im CSV-Format
+
+Für den Export im CSV-Format wird zur Kompatibilität mit MS Excel der UTF-16 Zeichensatz verwendet. Das Trennzeichen ist dabei `;`.
+Es handelt sich daher **nicht** um eine CSV-Datei nach [RFC 4180](https://www.rfc-editor.org/rfc/rfc4180).
 
 ### Anonymisierung
 
