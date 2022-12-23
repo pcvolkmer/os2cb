@@ -9,6 +9,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gocarina/gocsv"
 	"golang.org/x/term"
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 	"io"
 	"log"
 	"os"
@@ -75,20 +77,35 @@ func main() {
 		return
 	}
 
-	comma := '\t'
-	if cli.Csv {
-		comma = ';'
-	}
-
 	gocsv.SetCSVWriter(func(out io.Writer) *gocsv.SafeCSVWriter {
-		writer := csv.NewWriter(out)
-		writer.Comma = comma
+		win16be := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM)
+		utf16bom := unicode.BOMOverride(win16be.NewEncoder())
+
+		var writer *csv.Writer
+		if cli.Csv {
+			transformWriter := transform.NewWriter(out, utf16bom)
+			writer = csv.NewWriter(transformWriter)
+			writer.Comma = ';'
+		} else {
+			writer = csv.NewWriter(out)
+			writer.Comma = '\t'
+		}
 		return gocsv.NewSafeCSVWriter(writer)
 	})
 
 	gocsv.SetCSVReader(func(in io.Reader) gocsv.CSVReader {
-		reader := csv.NewReader(in)
-		reader.Comma = comma
+		win16be := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM)
+		utf16bom := unicode.BOMOverride(win16be.NewDecoder())
+
+		var reader *csv.Reader
+		if cli.Csv {
+			transformReader := transform.NewReader(in, utf16bom)
+			reader = csv.NewReader(transformReader)
+			reader.Comma = ';'
+		} else {
+			reader = csv.NewReader(in)
+			reader.Comma = '\t'
+		}
 		return reader
 	})
 
