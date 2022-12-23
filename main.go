@@ -86,37 +86,8 @@ func main() {
 		log.Fatalf("Cannot connect to Database: %s\n", err.Error())
 	}
 
-	gocsv.SetCSVWriter(func(out io.Writer) *gocsv.SafeCSVWriter {
-		win16be := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM)
-		utf16bom := unicode.BOMOverride(win16be.NewEncoder())
-
-		var writer *csv.Writer
-		if cli.Csv {
-			transformWriter := transform.NewWriter(out, utf16bom)
-			writer = csv.NewWriter(transformWriter)
-			writer.Comma = ';'
-		} else {
-			writer = csv.NewWriter(out)
-			writer.Comma = '\t'
-		}
-		return gocsv.NewSafeCSVWriter(writer)
-	})
-
-	gocsv.SetCSVReader(func(in io.Reader) gocsv.CSVReader {
-		win16be := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM)
-		utf16bom := unicode.BOMOverride(win16be.NewDecoder())
-
-		var reader *csv.Reader
-		if cli.Csv {
-			transformReader := transform.NewReader(in, utf16bom)
-			reader = csv.NewReader(transformReader)
-			reader.Comma = ';'
-		} else {
-			reader = csv.NewReader(in)
-			reader.Comma = '\t'
-		}
-		return reader
-	})
+	gocsv.SetCSVWriter(getCsvWriter(cli.Csv))
+	gocsv.SetCSVReader(getCsvReader(cli.Csv))
 
 	switch context.Command() {
 	case "export-patients":
@@ -127,6 +98,44 @@ func main() {
 
 	}
 
+}
+
+// Übergibt Methode zum Erstellen des passenden CsvWriters für TSV (cBioportal) oder CSV (Excel mit UTF16BE)
+func getCsvWriter(isCsv bool) func(out io.Writer) *gocsv.SafeCSVWriter {
+	return func(out io.Writer) *gocsv.SafeCSVWriter {
+		win16be := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM)
+		utf16bom := unicode.BOMOverride(win16be.NewEncoder())
+
+		var writer *csv.Writer
+		if isCsv {
+			transformWriter := transform.NewWriter(out, utf16bom)
+			writer = csv.NewWriter(transformWriter)
+			writer.Comma = ';'
+		} else {
+			writer = csv.NewWriter(out)
+			writer.Comma = '\t'
+		}
+		return gocsv.NewSafeCSVWriter(writer)
+	}
+}
+
+// Übergibt Methode zum Erstellen des passenden CsvReaders für TSV (cBioportal) oder CSV (Excel mit UTF16BE)
+func getCsvReader(isCsv bool) func(in io.Reader) gocsv.CSVReader {
+	return func(in io.Reader) gocsv.CSVReader {
+		win16be := unicode.UTF16(unicode.BigEndian, unicode.IgnoreBOM)
+		utf16bom := unicode.BOMOverride(win16be.NewDecoder())
+
+		var reader *csv.Reader
+		if isCsv {
+			transformReader := transform.NewReader(in, utf16bom)
+			reader = csv.NewReader(transformReader)
+			reader.Comma = ';'
+		} else {
+			reader = csv.NewReader(in)
+			reader.Comma = '\t'
+		}
+		return reader
+	}
 }
 
 // Bearbeitet die Ausführung und ermittelt Daten abhängig von übergebener Funktion
