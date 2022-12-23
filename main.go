@@ -73,7 +73,12 @@ func main() {
 	if dbx, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", cli.User, cli.Password, cli.Host, cli.Port, cli.Database)); err == nil {
 		if err := dbx.Ping(); err == nil {
 			db = dbx
-			defer db.Close()
+			defer func(db *sql.DB) {
+				err := db.Close()
+				if err != nil {
+					log.Println("Cannot close database connection")
+				}
+			}(db)
 		} else {
 			log.Fatalf("Cannot connect to Database: %s\n", err.Error())
 		}
@@ -149,8 +154,8 @@ func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc f
 // Ermittelt alle Patientendaten von allen angegebenen Patienten
 func fetchAllPatientData(patientIds []string, db *sql.DB) ([]PatientData, error) {
 	patients := InitPatients(db)
-	result := []PatientData{}
-	for _, patientId := range cli.PatientId {
+	var result []PatientData
+	for _, patientId := range patientIds {
 		if data, err := patients.Fetch(patientId); err == nil {
 			result = append(result, *data)
 		} else {
@@ -163,8 +168,8 @@ func fetchAllPatientData(patientIds []string, db *sql.DB) ([]PatientData, error)
 // Ermittelt alle Probendaten von allen angegebenen Patienten
 func fetchAllSampleData(patientIds []string, db *sql.DB) ([]SampleData, error) {
 	samples := InitSamples(db)
-	result := []SampleData{}
-	for _, patientId := range cli.PatientId {
+	var result []SampleData
+	for _, patientId := range patientIds {
 		if data, err := samples.Fetch(patientId); err == nil {
 			for _, d := range data {
 				result = append(result, d)
@@ -178,8 +183,13 @@ func fetchAllSampleData(patientIds []string, db *sql.DB) ([]SampleData, error) {
 
 // Liest eine bestehende Datei ein
 func readFile[D PatientData | SampleData](filename string, data []D) ([]D, error) {
-	file, err := os.Open(cli.Filename)
-	defer file.Close()
+	file, err := os.Open(filename)
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			log.Println("Cannot close file")
+		}
+	}(file)
 	if err != nil {
 		return nil, errors.New("file: Datei kann nicht geöffnet werden")
 	}
@@ -192,7 +202,7 @@ func readFile[D PatientData | SampleData](filename string, data []D) ([]D, error
 
 // Schreibt Daten in CSV/TSV Datei
 func writeFile[D PatientData | SampleData](filename string, data []D) error {
-	file, err := os.Create(cli.Filename)
+	file, err := os.Create(filename)
 	if err != nil {
 		return errors.New("file: Datei kann nicht geöffnet werden")
 	}
