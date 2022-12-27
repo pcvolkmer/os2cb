@@ -75,12 +75,9 @@ func (patients *Patients) Fetch(patientId string) (*PatientData, error) {
 			result = appendDiagnoseDaten(patientId, result)
 
 			return result, nil
-		} else {
-			return nil, errors.New(fmt.Sprintf("Keine Daten zu Patient mit ID '%s'\n", patientId))
 		}
-		return nil, errors.New("patient not found")
 	}
-	return nil, errors.New("patient not found")
+	return nil, errors.New(fmt.Sprintf("Keine Daten zu Patient mit ID '%s'\n", patientId))
 }
 
 // Liest den Karnovsky-Grad des Patienten aus und wandelt diesen in ECOG
