@@ -62,10 +62,10 @@ func (patients *Patients) Fetch(patientId string) (*PatientData, error) {
 				result.Age = fmt.Sprint(geburtsdatum)
 			}
 
-			// OS_STATUS + OS_MONTHS
+			// OS_STATUS
+			// OS_MONTHS applied using appendDiagnoseDaten()
 			if sterbedatum, err := sterbedatum.Value(); err == nil && sterbedatum != nil {
 				result.OsStatus = "DECEASED"
-				//d, _ := time.Parse("2006-01-02", fmt.Sprint(sterbedatum))
 			} else {
 				result.OsStatus = "LIVING"
 			}
@@ -131,7 +131,13 @@ func karnovskyToEcog(karnovsky string) string {
 
 // Ermittelt Diagnosedaten zu den Patientendaten und gibt diese zurück
 func appendDiagnoseDaten(patientId string, data *PatientData) *PatientData {
-	query := `SELECT icdo3histologie, beginndatum, icd10, fernmetastasen, pcve.shortdesc as diagnose
+	query := `SELECT 
+    	icdo3histologie,
+    	beginndatum,
+    	icd10,
+    	fernmetastasen,
+    	pcve.shortdesc AS diagnose,
+    	ROUND(DATEDIFF(IF(sterbedatum IS NULL, NOW(), sterbedatum),diagnosedatum) / 30) AS os_month
 		FROM prozedur
 		JOIN dk_diagnose ON prozedur.id = dk_diagnose.id
 		JOIN property_catalogue_version_entry pcve ON pcve.code = icd10 AND pcve.property_version_id = icd10_propcat_version
@@ -152,10 +158,17 @@ func appendDiagnoseDaten(patientId string, data *PatientData) *PatientData {
 	var icd10 sql.NullString
 	var fernmetastasen sql.NullString
 	var diagnose sql.NullString
+	var osMonth sql.NullInt16
 
 	if row := db.QueryRow(query, patientId, patientId); row != nil {
 
-		if err := row.Scan(&icdo3histologie, &beginndatum, &icd10, &fernmetastasen, &diagnose); err == nil {
+		if err := row.Scan(&icdo3histologie, &beginndatum, &icd10, &fernmetastasen, &diagnose, &osMonth); err == nil {
+			// OS_MONTH
+			// Aktuell nur ganze Monate als Kommazahl (Anzahl Tage / 30)
+			if osMonth, err := osMonth.Value(); err == nil && osMonth != nil {
+				data.OsMonths = fmt.Sprintf("%d.0", osMonth)
+			}
+
 			// ICD-O3-Morphologie Code
 			if icdo3histologie, err := icdo3histologie.Value(); err == nil && icdo3histologie != nil {
 				data.IcdO3MorphCode = fmt.Sprint(icdo3histologie)
