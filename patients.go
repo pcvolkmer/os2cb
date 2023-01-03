@@ -206,16 +206,16 @@ func appendDiagnoseDaten(patientId string, data *PatientData) *PatientData {
 			WHERE p.patienten_id = ?
 			ORDER BY beginndatum DESC`
 
-	if rows, err := db.Query(queryErkrankungen, patientId, patientId); err == nil {
+	if rows, err := db.Query(queryErkrankungen, patientId); err == nil {
 
 		diags := []string{}
 		var erkrankung sql.NullString
 
-		// Skip first entry
-		rows.Next()
 		for rows.Next() {
 			if err := rows.Scan(&erkrankung); err == nil {
-				diags = append(diags, erkrankung.String)
+				if erkrankung.String != data.Diagnosis {
+					diags = append(diags, erkrankung.String)
+				}
 			}
 		}
 
