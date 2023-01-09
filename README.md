@@ -20,6 +20,7 @@ Flags:
       --port=3306                    Database port
   -D, --database="onkostar"          Database name
       --patient-id=PATIENT-ID,...    PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs
+      --id-prefix="WUE"              Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben.
       --filename=STRING              Exportiere in diese Datei
       --append                       An bestehende Datei anhängen
       --csv                          Verwende CSV-Format anstelle TSV-Format (UTF-16 und Trennung mit ';' zur Verwendung mit MS Excel)
@@ -49,3 +50,5 @@ Dies entspricht folgendem Shell-Befehl:
 ```shell
 echo -n "<ID>" | sha256sum | sed -e 's/^\(.\{10\}\).*/WUE_\1/'
 ```
+
+Der Prefix einer anonymisierten ID kann über den Parameter `--id-prefix` verändert werden. Ohne Angabe wird "WUE" verwendet.

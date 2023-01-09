@@ -1,9 +1,7 @@
 package main
 
 import (
-	"crypto/sha256"
 	"database/sql"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
@@ -77,9 +75,7 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 
 		var result = []SampleData{}
 
-		sha := sha256.New()
-		sha.Write([]byte(patientId))
-		patientIdHash := hex.EncodeToString(sha.Sum(nil))
+		anonymizedPatientId := AnonymizedId(patientId)
 
 		var id sql.NullString
 		var datum sql.NullString
@@ -112,12 +108,8 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 
 				// SAMPLE_ID
 				if einsendenummer, err := einsendenummer.Value(); err == nil && einsendenummer != nil {
-					sha.Reset()
-					sha.Write([]byte(fmt.Sprint(einsendenummer)))
-					einsendenummerHash := hex.EncodeToString(sha.Sum(nil))
-
-					data.PatientId = "WUE_" + patientIdHash[0:10]
-					data.SampleId = "WUE_" + einsendenummerHash[0:10]
+					data.PatientId = anonymizedPatientId
+					data.SampleId = AnonymizedId(fmt.Sprint(einsendenummer))
 				} else {
 					continue
 				}

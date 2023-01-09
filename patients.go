@@ -1,9 +1,7 @@
 package main
 
 import (
-	"crypto/sha256"
 	"database/sql"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"strconv"
@@ -28,17 +26,13 @@ func (patients *Patients) Fetch(patientId string) (*PatientData, error) {
 		FROM patient WHERE patienten_id = ?`
 
 	if row := db.QueryRow(query, patientId); row != nil {
-		sha := sha256.New()
-		sha.Write([]byte(patientId))
-		hash := hex.EncodeToString(sha.Sum(nil))
-
 		var sex sql.NullString
 		var geburtsdatum sql.NullInt16
 		var sterbedatum sql.NullString
 
 		if err := row.Scan(&sex, &geburtsdatum, &sterbedatum); err == nil {
 			result := &PatientData{
-				Id: "WUE_" + hash[0:10],
+				Id: AnonymizedId(patientId),
 			}
 
 			// GENDER + SEX
