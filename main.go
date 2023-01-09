@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crypto/sha256"
 	"database/sql"
 	"encoding/csv"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/alecthomas/kong"
@@ -31,6 +33,7 @@ type Globals struct {
 	Port      int      `help:"Database port" default:"3306"`
 	Database  string   `short:"D" help:"Database name" default:"onkostar"`
 	PatientId []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs"`
+	IdPrefix  string   `help:"Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben." default:"WUE"`
 	Filename  string   `help:"Exportiere in diese Datei"`
 	Append    bool     `help:"An bestehende Datei anhängen"`
 	Csv       bool     `help:"Verwende CSV-Format anstelle TSV-Format. Trennung mit ';' für MS Excel" default:"false"`
@@ -98,6 +101,14 @@ func main() {
 
 	}
 
+}
+
+func AnonymizedId(id string) string {
+	sha := sha256.New()
+	sha.Write([]byte(id))
+	hash := hex.EncodeToString(sha.Sum(nil))
+
+	return cli.IdPrefix + "_" + hash[0:10]
 }
 
 // Übergibt Methode zum Erstellen des passenden CsvWriters für TSV (cBioportal) oder CSV (Excel mit UTF16BE)
