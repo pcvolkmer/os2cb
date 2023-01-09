@@ -28,6 +28,7 @@ Flags:
 Commands:
   export-patients    Export patient data
   export-samples     Export sample data
+  display            Show patient and sample data. Exit Display-Mode with <CTRL>+'C'
 ```
 
 ### Hinweis zu Passwörtern
