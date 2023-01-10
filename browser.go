@@ -2,34 +2,54 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 	"os"
 	"strings"
 )
 
-func ShowBrowser(patientIds []string, db *sql.DB) {
+func DisplayPatients(patientIds []string, db *sql.DB) {
 	browser := Browser{
-		patientIds: patientIds,
-		db:         db,
+		patientIds:  patientIds,
+		db:          db,
+		browserType: Patient,
 	}
 	browser.show()
 }
 
+func DisplaySamples(patientIds []string, db *sql.DB) {
+	browser := Browser{
+		patientIds:  patientIds,
+		db:          db,
+		browserType: Sample,
+	}
+	browser.show()
+}
+
+type BrowserType int8
+
+const (
+	Patient BrowserType = iota
+	Sample              = iota
+)
+
 type Browser struct {
 	db                *sql.DB
+	browserType       BrowserType
 	patientIds        []string
 	currentPatientIds []string
 }
 
 func (browser *Browser) show() {
+	app := tview.NewApplication()
+
 	grid := tview.NewGrid()
-	grid.SetRows(3, 0)
+	grid.SetRows(1, 0)
 
-	flex := tview.NewFlex()
-	flex.SetDirection(tview.FlexRow)
+	var table *tview.Table
 
-	item := tview.NewInputField().SetLabel("Patienten-IDs (kommagetrennt)").SetText(strings.Join(cli.PatientId, ","))
+	item := tview.NewInputField().SetLabel("Patienten-IDs (kommagetrennt): ").SetText(strings.Join(cli.PatientId, ","))
 	item.SetChangedFunc(func(text string) {
 		ids := strings.Split(text, ",")
 		patientIds := []string{}
@@ -41,24 +61,38 @@ func (browser *Browser) show() {
 	})
 	item.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyCR {
-			if flex.GetItemCount() > 0 {
-				flex.RemoveItem(flex.GetItem(0))
+			grid.RemoveItem(table)
+			if t, err := browser.createTable(browser.currentPatientIds); err == nil {
+				table = t
+				grid.AddItem(t, 1, 0, 1, 1, 0, 0, false)
 			}
-			if flex.GetItemCount() > 0 {
-				flex.RemoveItem(flex.GetItem(0))
-			}
-			flex = browser.addPatientTable(flex, browser.currentPatientIds)
-			flex = browser.addSampleTable(flex, browser.currentPatientIds)
+
+			table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+				if event.Key() == tcell.KeyTAB {
+					app.SetFocus(item)
+				}
+				return event
+			})
+		} else if key == tcell.KeyTAB {
+			// Set Focus to flex
+			app.SetFocus(table)
 		}
 	})
 	grid.AddItem(item, 0, 0, 1, 1, 0, 0, true)
 
-	flex = browser.addPatientTable(flex, cli.PatientId)
-	flex = browser.addSampleTable(flex, cli.PatientId)
+	if t, err := browser.createTable(browser.patientIds); err == nil {
+		table = t
+		grid.AddItem(t, 1, 0, 1, 1, 0, 0, false)
+	}
 
-	grid.AddItem(flex, 1, 0, 1, 1, 0, 0, false)
+	table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyTAB {
+			app.SetFocus(item)
+		}
+		return event
+	})
 
-	app := tview.NewApplication()
+	grid.AddItem(table, 1, 0, 1, 1, 0, 0, false)
 
 	if err := app.SetRoot(grid, true).Run(); err == nil {
 		os.Exit(0)
@@ -66,12 +100,34 @@ func (browser *Browser) show() {
 
 }
 
-func (browser *Browser) addPatientTable(flex *tview.Flex, patientIds []string) *tview.Flex {
+func (browser *Browser) createTable(patientIds []string) (*tview.Table, error) {
+	var table *tview.Table
+
+	if browser.browserType == Patient {
+		if t, err := browser.createPatientTable(patientIds); err != nil {
+			table = t
+		} else {
+			return t, err
+		}
+	} else if browser.browserType == Sample {
+		if t, err := browser.createSampleTable(patientIds); err != nil {
+			table = t
+		} else {
+			return t, err
+		}
+	} else {
+		return nil, errors.New("unknown browser type")
+	}
+
+	return table, nil
+}
+
+func (browser *Browser) createPatientTable(patientIds []string) (*tview.Table, error) {
 	if data, err := FetchAllPatientData(patientIds, browser.db); err == nil {
 		table := tview.NewTable()
 		table.SetBorder(true)
 		table.SetBorders(true)
-		table.SetTitle("patient")
+		table.SetTitle("Patienten-Daten")
 
 		headline := []string{
 			"PATIENT_ID",
@@ -121,18 +177,18 @@ func (browser *Browser) addPatientTable(flex *tview.Flex, patientIds []string) *
 			table.SetCellSimple(idx+1, 18, item.OsMonths)
 		}
 
-		flex.AddItem(table, 0, 1, false)
+		return table, nil
+	} else {
+		return nil, err
 	}
-
-	return flex
 }
 
-func (browser *Browser) addSampleTable(flex *tview.Flex, patientIds []string) *tview.Flex {
+func (browser *Browser) createSampleTable(patientIds []string) (*tview.Table, error) {
 	if data, err := FetchAllSampleData(patientIds, browser.db); err == nil {
 		table := tview.NewTable()
 		table.SetBorder(true)
 		table.SetBorders(true)
-		table.SetTitle("sample")
+		table.SetTitle("Sample-Daten")
 
 		headline := []string{
 			"PATIENT_ID",
@@ -196,8 +252,8 @@ func (browser *Browser) addSampleTable(flex *tview.Flex, patientIds []string) *t
 			table.SetCellSimple(idx+1, 25, item.Cnv)
 		}
 
-		flex.AddItem(table, 0, 1, false)
+		return table, nil
+	} else {
+		return nil, err
 	}
-
-	return flex
 }

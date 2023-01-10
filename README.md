@@ -26,9 +26,10 @@ Flags:
       --csv                          Verwende CSV-Format anstelle TSV-Format (UTF-16 und Trennung mit ';' zur Verwendung mit MS Excel)
 
 Commands:
-  export-patients    Export patient data
-  export-samples     Export sample data
-  display            Show patient and sample data. Exit Display-Mode with <CTRL>+'C'
+  export-patients     Export patient data
+  export-samples      Export sample data
+  display-patients    Show patient data. Exit Display-Mode with <CTRL>+'C'
+  display-samples     Show sample data. Exit Display-Mode with <CTRL>+'C'
 ```
 
 ### Hinweis zu Passwörtern

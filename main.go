@@ -16,6 +16,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
 	"syscall"
 	_ "syscall"
 )
@@ -48,8 +49,11 @@ type CLI struct {
 	ExportSamples struct {
 	} `cmd:"" help:"Export sample data"`
 
-	Display struct {
-	} `cmd:"" help:"Show patient and sample data. Exit Display-Mode with <CTRL>+'C'"`
+	DisplayPatients struct {
+	} `cmd:"" help:"Show patient data. Exit Display-Mode with <CTRL>+'C'"`
+
+	DisplaySamples struct {
+	} `cmd:"" help:"Show sample data. Exit Display-Mode with <CTRL>+'C'"`
 }
 
 func init() {
@@ -100,8 +104,12 @@ func main() {
 		handleCommand(cli, db, FetchAllPatientData)
 	case "export-samples":
 		handleCommand(cli, db, FetchAllSampleData)
-	case "display":
-		browser(db)
+	case "display-patients":
+		displayPatients(db)
+	case "display-samples":
+		displaySamples(db)
+	default:
+
 	}
 
 }
@@ -174,8 +182,12 @@ func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc f
 	}
 }
 
-func browser(db *sql.DB) {
-	ShowBrowser(cli.PatientId, db)
+func displayPatients(db *sql.DB) {
+	DisplayPatients(cli.PatientId, db)
+}
+
+func displaySamples(db *sql.DB) {
+	DisplaySamples(cli.PatientId, db)
 }
 
 // Ermittelt alle Patientendaten von allen angegebenen Patienten
@@ -186,7 +198,7 @@ func FetchAllPatientData(patientIds []string, db *sql.DB) ([]PatientData, error)
 		if data, err := patients.Fetch(patientId); err == nil {
 			result = append(result, *data)
 		} else {
-			if context.Command() != "display" {
+			if !strings.HasPrefix(context.Command(), "display") {
 				log.Println(err.Error())
 			}
 		}
@@ -204,7 +216,7 @@ func FetchAllSampleData(patientIds []string, db *sql.DB) ([]SampleData, error) {
 				result = append(result, d)
 			}
 		} else {
-			if context.Command() != "display" {
+			if !strings.HasPrefix(context.Command(), "display") {
 				log.Println(err.Error())
 			}
 		}
