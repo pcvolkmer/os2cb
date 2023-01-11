@@ -104,6 +104,14 @@ func NewBrowser(patientIds []string, browserType BrowserType, db *sql.DB) *Brows
 			} else {
 				browser.app.SetFocus(browser.inputField)
 			}
+		} else if event.Key() == tcell.KeyBacktab {
+			if browser.inputField.HasFocus() {
+				browser.app.SetFocus(browser.table)
+			} else if browser.dropDown.HasFocus() {
+				browser.app.SetFocus(browser.inputField)
+			} else {
+				browser.app.SetFocus(browser.dropDown)
+			}
 		}
 		return event
 	})
