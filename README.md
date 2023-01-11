@@ -54,3 +54,13 @@ echo -n "<ID>" | sha256sum | sed -e 's/^\(.\{10\}\).*/WUE_\1/'
 ```
 
 Der Prefix einer anonymisierten ID kann über den Parameter `--id-prefix` verändert werden. Ohne Angabe wird "WUE" verwendet.
+
+### Anzeige von Daten innerhalb der Anwendung
+
+Das Anzeigen von zu exportierenden Daten wird durch die beiden Befehle `display-patients` und `display-samples` ermöglicht, ohne in eine Datei speichern zu müssen.
+Die Parameter `--filename`, `--apend` und `--csv` werden dabei ignoriert.
+
+Mit der Tabulator-Taste gelangt man zum nächsten Element. Ist die Tabelle ausgewählt, kann mit den Pfeiltasten der anzuzeigende Ausschnitt ausgewählt werden.
+
+![Ansicht der Anzeige von Daten](display.gif)
+
