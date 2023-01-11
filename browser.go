@@ -112,9 +112,16 @@ func NewBrowser(patientIds []string, browserType BrowserType, db *sql.DB) *Brows
 			} else {
 				browser.app.SetFocus(browser.dropDown)
 			}
+		} else if event.Key() == tcell.KeyEscape {
+			browser.app.Stop()
 		}
 		return event
 	})
+
+	info := tview.NewFlex()
+	info.AddItem(tview.NewTextView().SetText("Hilfe: "), 8, 0, false)
+	info.AddItem(tview.NewTextView().SetLabel("<Esc> ").SetText("Beenden").SetTextColor(tcell.ColorGray), 0, 1, false)
+	browser.grid.AddItem(info, 3, 0, 1, 1, 0, 0, false)
 
 	return browser
 }
