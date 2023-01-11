@@ -27,6 +27,15 @@ func DisplaySamples(patientIds []string, db *sql.DB) {
 	browser.show()
 }
 
+func contains(patientIds []string, patientId string) bool {
+	for _, elem := range patientIds {
+		if elem == patientId {
+			return true
+		}
+	}
+	return false
+}
+
 type BrowserType int8
 
 const (
@@ -35,10 +44,9 @@ const (
 )
 
 type Browser struct {
-	db                *sql.DB
-	browserType       BrowserType
-	patientIds        []string
-	currentPatientIds []string
+	db          *sql.DB
+	browserType BrowserType
+	patientIds  []string
 }
 
 func (browser *Browser) show() {
@@ -49,36 +57,37 @@ func (browser *Browser) show() {
 
 	var table *tview.Table
 
-	item := tview.NewInputField().SetLabel("Patienten-IDs (kommagetrennt): ").SetText(strings.Join(cli.PatientId, ","))
-	item.SetChangedFunc(func(text string) {
+	inputField := tview.NewInputField().SetLabel("Patienten-IDs (kommagetrennt): ").SetText(strings.Join(cli.PatientId, ","))
+	inputField.SetChangedFunc(func(text string) {
 		ids := strings.Split(text, ",")
 		patientIds := []string{}
 		for _, id := range ids {
 			id = strings.TrimSpace(id)
-			patientIds = append(patientIds, id)
-			browser.currentPatientIds = patientIds
+			if !contains(patientIds, id) {
+				patientIds = append(patientIds, id)
+				browser.patientIds = patientIds
+			}
 		}
 	})
-	item.SetDoneFunc(func(key tcell.Key) {
+	inputField.SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyCR {
 			grid.RemoveItem(table)
-			if t, err := browser.createTable(browser.currentPatientIds); err == nil {
+			if t, err := browser.createTable(browser.patientIds); err == nil {
 				table = t
 				grid.AddItem(t, 1, 0, 1, 1, 0, 0, false)
 			}
 
 			table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 				if event.Key() == tcell.KeyTAB {
-					app.SetFocus(item)
+					app.SetFocus(inputField)
 				}
 				return event
 			})
 		} else if key == tcell.KeyTAB {
-			// Set Focus to flex
 			app.SetFocus(table)
 		}
 	})
-	grid.AddItem(item, 0, 0, 1, 1, 0, 0, true)
+	grid.AddItem(inputField, 0, 0, 1, 1, 0, 0, true)
 
 	if t, err := browser.createTable(browser.patientIds); err == nil {
 		table = t
@@ -87,7 +96,7 @@ func (browser *Browser) show() {
 
 	table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyTAB {
-			app.SetFocus(item)
+			app.SetFocus(inputField)
 		}
 		return event
 	})
