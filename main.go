@@ -183,11 +183,11 @@ func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc f
 }
 
 func displayPatients(db *sql.DB) {
-	DisplayPatients(cli.PatientId, db)
+	NewBrowser(cli.PatientId, Patient, db).Show()
 }
 
 func displaySamples(db *sql.DB) {
-	DisplaySamples(cli.PatientId, db)
+	NewBrowser(cli.PatientId, Patient, db).Show()
 }
 
 // Ermittelt alle Patientendaten von allen angegebenen Patienten

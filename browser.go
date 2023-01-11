@@ -9,24 +9,6 @@ import (
 	"strings"
 )
 
-func DisplayPatients(patientIds []string, db *sql.DB) {
-	browser := Browser{
-		patientIds:  patientIds,
-		db:          db,
-		browserType: Patient,
-	}
-	browser.show()
-}
-
-func DisplaySamples(patientIds []string, db *sql.DB) {
-	browser := Browser{
-		patientIds:  patientIds,
-		db:          db,
-		browserType: Sample,
-	}
-	browser.show()
-}
-
 func contains(patientIds []string, patientId string) bool {
 	for _, elem := range patientIds {
 		if elem == patientId {
@@ -47,17 +29,29 @@ type Browser struct {
 	db          *sql.DB
 	browserType BrowserType
 	patientIds  []string
+
+	app        *tview.Application
+	grid       *tview.Grid
+	inputField *tview.InputField
+	dropDown   *tview.DropDown
+	table      *tview.Table
 }
 
-func (browser *Browser) show() {
-	app := tview.NewApplication()
+func NewBrowser(patientIds []string, browserType BrowserType, db *sql.DB) *Browser {
+	var inputField *tview.InputField
+	var dropDown *tview.DropDown
 
-	grid := tview.NewGrid()
-	grid.SetRows(1, 0)
+	browser := &Browser{
+		db:          db,
+		browserType: browserType,
+		patientIds:  patientIds,
+		app:         tview.NewApplication(),
+		grid:        tview.NewGrid().SetRows(2, 2, 0, 1),
+	}
 
-	var table *tview.Table
-
-	inputField := tview.NewInputField().SetLabel("Patienten-IDs (kommagetrennt): ").SetText(strings.Join(cli.PatientId, ","))
+	inputField = tview.NewInputField().
+		SetLabel("Patienten-IDs (kommagetrennt): ").
+		SetLabelWidth(32).SetText(strings.Join(cli.PatientId, ","))
 	inputField.SetChangedFunc(func(text string) {
 		ids := strings.Split(text, ",")
 		patientIds := []string{}
@@ -68,45 +62,70 @@ func (browser *Browser) show() {
 				browser.patientIds = patientIds
 			}
 		}
-	})
-	inputField.SetDoneFunc(func(key tcell.Key) {
+	}).SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyCR {
-			grid.RemoveItem(table)
-			if t, err := browser.createTable(browser.patientIds); err == nil {
-				table = t
-				grid.AddItem(t, 1, 0, 1, 1, 0, 0, false)
-			}
-
-			table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-				if event.Key() == tcell.KeyTAB {
-					app.SetFocus(inputField)
-				}
-				return event
-			})
-		} else if key == tcell.KeyTAB {
-			app.SetFocus(table)
+			browser.replaceTable()
 		}
 	})
-	grid.AddItem(inputField, 0, 0, 1, 1, 0, 0, true)
+	inputField.SetBorderPadding(0, 1, 1, 1)
+	browser.grid.AddItem(inputField, 0, 0, 1, 1, 0, 0, true)
 
-	if t, err := browser.createTable(browser.patientIds); err == nil {
-		table = t
-		grid.AddItem(t, 1, 0, 1, 1, 0, 0, false)
+	dropDown = tview.NewDropDown().SetLabel("Ansicht: ").SetLabelWidth(32)
+	dropDown.SetOptions([]string{"Patienten-Daten", "Sample-Daten"}, func(text string, index int) {
+		if text == "Patienten-Daten" {
+			browser.browserType = Patient
+		} else if text == "Sample-Daten" {
+			browser.browserType = Sample
+		} else {
+			return
+		}
+		browser.replaceTable()
+	})
+	if browser.browserType == Sample {
+		dropDown.SetCurrentOption(1)
+	} else {
+		dropDown.SetCurrentOption(0)
 	}
 
-	table.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		if event.Key() == tcell.KeyTAB {
-			app.SetFocus(inputField)
+	dropDown.SetBorderPadding(0, 1, 1, 1)
+	browser.grid.AddItem(dropDown, 1, 0, 1, 1, 0, 0, false)
+
+	browser.inputField = inputField
+	browser.dropDown = dropDown
+
+	browser.replaceTable()
+
+	browser.grid.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyTab {
+			if browser.inputField.HasFocus() {
+				browser.app.SetFocus(browser.dropDown)
+			} else if browser.dropDown.HasFocus() {
+				browser.app.SetFocus(browser.table)
+			} else {
+				browser.app.SetFocus(browser.inputField)
+			}
 		}
 		return event
 	})
 
-	grid.AddItem(table, 1, 0, 1, 1, 0, 0, false)
+	return browser
+}
 
-	if err := app.SetRoot(grid, true).Run(); err == nil {
+func (browser *Browser) Show() {
+	if err := browser.app.SetRoot(browser.grid, true).Run(); err == nil {
 		os.Exit(0)
 	}
+}
 
+func (browser *Browser) replaceTable() {
+	if browser.table != nil {
+		browser.grid.RemoveItem(browser.table)
+	}
+
+	if t, err := browser.createTable(browser.patientIds); err == nil {
+		browser.table = t
+		browser.grid.AddItem(t, 2, 0, 1, 1, 0, 0, false)
+	}
 }
 
 func (browser *Browser) createTable(patientIds []string) (*tview.Table, error) {
