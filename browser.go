@@ -65,6 +65,7 @@ func NewBrowser(patientIds []string, browserType BrowserType, db *sql.DB) *Brows
 	}).SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyCR {
 			browser.replaceTable()
+			browser.app.SetFocus(browser.dropDown)
 		}
 	})
 	inputField.SetBorderPadding(0, 1, 1, 1)
@@ -80,6 +81,7 @@ func NewBrowser(patientIds []string, browserType BrowserType, db *sql.DB) *Brows
 			return
 		}
 		browser.replaceTable()
+		browser.app.SetFocus(browser.table)
 	})
 	if browser.browserType == Sample {
 		dropDown.SetCurrentOption(1)
