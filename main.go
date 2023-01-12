@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"encoding/csv"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"github.com/alecthomas/kong"
 	_ "github.com/go-sql-driver/mysql"
@@ -15,7 +14,6 @@ import (
 	"golang.org/x/text/transform"
 	"io"
 	"log"
-	"os"
 	"strings"
 	"syscall"
 	_ "syscall"
@@ -164,7 +162,7 @@ func getCsvReader(isCsv bool) func(in io.Reader) gocsv.CSVReader {
 func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc func(patientIds []string, db *sql.DB) ([]D, error)) {
 	var result []D
 	if cli.Append {
-		if r, err := readFile(cli.Filename, result); err == nil {
+		if r, err := ReadFile(cli.Filename, result); err == nil {
 			result = r
 		} else {
 			log.Fatalln(err.Error())
@@ -177,7 +175,7 @@ func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc f
 		log.Fatalln(err.Error())
 	}
 
-	if err := writeFile(cli.Filename, result); err != nil {
+	if err := WriteFile(cli.Filename, result); err != nil {
 		log.Fatalln(err.Error())
 	}
 }
@@ -222,37 +220,4 @@ func FetchAllSampleData(patientIds []string, db *sql.DB) ([]SampleData, error) {
 		}
 	}
 	return result, nil
-}
-
-// Liest eine bestehende Datei ein
-func readFile[D PatientData | SampleData](filename string, data []D) ([]D, error) {
-	file, err := os.Open(filename)
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			log.Println("Cannot close file")
-		}
-	}(file)
-	if err != nil {
-		return nil, errors.New("file: Datei kann nicht geöffnet werden")
-	}
-	if gocsv.UnmarshalFile(file, &data) != nil {
-		return nil, errors.New("file: Datei kann nicht gelesen werden")
-	}
-
-	return data, nil
-}
-
-// Schreibt Daten in CSV/TSV Datei
-func writeFile[D PatientData | SampleData](filename string, data []D) error {
-	file, err := os.Create(filename)
-	if err != nil {
-		return errors.New("file: Datei kann nicht geöffnet werden")
-	}
-
-	if err := gocsv.MarshalFile(data, file); err != nil {
-		return errors.New("file: In die Datei kann nicht geschrieben werden")
-	}
-
-	return nil
 }

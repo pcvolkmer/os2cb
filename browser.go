@@ -97,13 +97,19 @@ func NewBrowser(patientIds []string, browserType BrowserType, db *sql.DB) *Brows
 
 	browser.replaceTable()
 
+	info := tview.NewFlex()
+	info.AddItem(tview.NewTextView().SetLabel("<Strg>+C ").SetText("Beenden").SetTextColor(tcell.ColorGray), 20, 0, false)
+	info.AddItem(tview.NewTextView().SetLabel("<Strg>+S ").SetText("Tabelle speichern").SetTextColor(tcell.ColorGray), 30, 0, false)
+	info.AddItem(tview.NewTextView(), 0, 1, false)
+	browser.grid.AddItem(info, 3, 0, 1, 1, 0, 0, false)
+
 	browser.grid.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		if event.Key() == tcell.KeyTab {
 			if browser.inputField.HasFocus() {
 				browser.app.SetFocus(browser.dropDown)
 			} else if browser.dropDown.HasFocus() {
 				browser.app.SetFocus(browser.table)
-			} else {
+			} else if browser.table.HasFocus() {
 				browser.app.SetFocus(browser.inputField)
 			}
 		} else if event.Key() == tcell.KeyBacktab {
@@ -111,19 +117,31 @@ func NewBrowser(patientIds []string, browserType BrowserType, db *sql.DB) *Brows
 				browser.app.SetFocus(browser.table)
 			} else if browser.dropDown.HasFocus() {
 				browser.app.SetFocus(browser.inputField)
-			} else {
+			} else if browser.table.HasFocus() {
 				browser.app.SetFocus(browser.dropDown)
 			}
-		} else if event.Key() == tcell.KeyEscape {
-			browser.app.Stop()
+		} else if event.Key() == tcell.KeyCtrlS {
+			focus := browser.app.GetFocus()
+			var filename string
+			filenameInput := tview.NewInputField().SetLabel("Datei: ")
+			filenameInput.SetChangedFunc(func(text string) {
+				filename = text
+			}).SetDoneFunc(func(key tcell.Key) {
+				if key == tcell.KeyCR {
+					if err := browser.saveTable(filename); err == nil {
+						browser.app.SetFocus(focus)
+						info.RemoveItem(filenameInput)
+					}
+				} else if key == tcell.KeyEsc {
+					browser.app.SetFocus(focus)
+					info.RemoveItem(filenameInput)
+				}
+			})
+			info.AddItem(filenameInput, 0, 1, true)
+			browser.app.SetFocus(filenameInput)
 		}
 		return event
 	})
-
-	info := tview.NewFlex()
-	info.AddItem(tview.NewTextView().SetText("Hilfe: "), 8, 0, false)
-	info.AddItem(tview.NewTextView().SetLabel("<Esc> ").SetText("Beenden").SetTextColor(tcell.ColorGray), 0, 1, false)
-	browser.grid.AddItem(info, 3, 0, 1, 1, 0, 0, false)
 
 	return browser
 }
@@ -132,6 +150,23 @@ func (browser *Browser) Show() {
 	if err := browser.app.SetRoot(browser.grid, true).Run(); err == nil {
 		os.Exit(0)
 	}
+}
+
+func (browser *Browser) saveTable(filename string) error {
+	if browser.browserType == Patient {
+		if data, err := FetchAllPatientData(browser.patientIds, browser.db); err == nil {
+			return WriteFile(filename, data)
+		} else {
+			return err
+		}
+	} else if browser.browserType == Sample {
+		if data, err := FetchAllSampleData(browser.patientIds, browser.db); err == nil {
+			return WriteFile(filename, data)
+		} else {
+			return err
+		}
+	}
+	return nil
 }
 
 func (browser *Browser) replaceTable() {
