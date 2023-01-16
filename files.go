@@ -1,11 +1,19 @@
 package main
 
 import (
+	_ "embed"
 	"errors"
 	"github.com/gocarina/gocsv"
 	"log"
 	"os"
+	"reflect"
 )
+
+//go:embed resources/prefix-data_clinical_patient.txt
+var prefix_data_clinical_patient string
+
+//go:embed resources/prefix-data_clinical_sample.txt
+var prefix_data_clinical_sample string
 
 // Liest eine bestehende Datei ein
 func ReadFile[D PatientData | SampleData](filename string, data []D) ([]D, error) {
@@ -33,8 +41,19 @@ func WriteFile[D PatientData | SampleData](filename string, data []D) error {
 		return errors.New("file: Datei kann nicht geöffnet werden")
 	}
 
-	if err := gocsv.MarshalFile(data, file); err != nil {
-		return errors.New("file: In die Datei kann nicht geschrieben werden")
+	if output, err := gocsv.MarshalString(data); err == nil {
+		// Prepend CSV comments bc cBioportal will result in errors without them
+		if reflect.TypeOf(data) == reflect.TypeOf([]PatientData{}) {
+			output = prefix_data_clinical_patient + output
+		} else if reflect.TypeOf(data) == reflect.TypeOf([]SampleData{}) {
+			output = prefix_data_clinical_sample + output
+		}
+
+		if _, err := file.Write([]byte(output)); err != nil {
+			return errors.New("file: In die Datei kann nicht geschrieben werden")
+		}
+	} else {
+		return errors.New("file: Fehler beim Erstellen der Ausgabedaten")
 	}
 
 	return nil

@@ -1,6 +1,8 @@
 *
 
 .gitignore
+!/resources
+!/resources/**
 !/*.go
 !/*.mod
 !/*.md

@@ -1,0 +1,4 @@
+#Patient Identifier	Gender	Sex	Age (Years)	ICD-O3-Morphologie Code	Diagnosis	Oncotree code	ICD10 Code	Aktuelle Krankheitsausdehnung	ECOG Status bei MTB	Fruehere maligne Tumorerkrankungen	Vortherapie Progress	Anzahl Systemischer Vortherapien	Vortherapie Medikamente	Vortherapie Medikament NCIt 	Best Response Vortherapie	PFS Vortherapie	Overall survival status	Overall survival (Months)
+#Patient identifier	Gender	Sex	Age	ICD-O3-Morphologie Code	Diagnosis	Oncotree code	ICD10 Code	Aktuelle Krankheitsausdehnung	ECOG Status bei MTB	Fruehere maligne Tumorerkrankungen	Vortherapie Progress	Anzahl Systemischer Vortherapien	Vortherapie Medikamente	Vortherapie Medikament NCIt 	Best Response Vortherapie	PFS Vortherapie	Overall patient survival status	Overall survival in months
+#STRING	STRING	STRING	NUMBER	STRING	STRING	STRING	STRING	STRING	STRING	STRING	STRING	NUMBER	STRING	STRING	STRING	NUMBER	STRING	NUMBER
+#1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1
