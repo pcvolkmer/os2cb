@@ -130,7 +130,7 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 					if value == "B" {
 						data.SampleMethod = "Biopsie"
 					} else if value == "R" {
-						data.SampleLocation = "Resektat"
+						data.SampleMethod = "Resektat"
 					}
 				}
 
