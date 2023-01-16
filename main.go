@@ -154,6 +154,7 @@ func getCsvReader(isCsv bool) func(in io.Reader) gocsv.CSVReader {
 			reader = csv.NewReader(in)
 			reader.Comma = '\t'
 		}
+		reader.Comment = '#'
 		return reader
 	}
 }
