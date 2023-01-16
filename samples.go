@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -62,6 +63,7 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
     	dm.tumormutationalburden,
     	pcve.shortdesc as sample_location,
     	dm.nukleinsaeure,
+    	pcve2.code as panel_code,
     	pcve2.shortdesc as panel
 		FROM prozedur
 		JOIN dk_molekulargenetik dm on prozedur.id = dm.id
@@ -87,6 +89,7 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 		var tumormutationalburden sql.NullString
 		var sampleLocation sql.NullString
 		var nukleinsaeure sql.NullString
+		var panelCode sql.NullString
 		var panel sql.NullString
 
 		for rows.Next() {
@@ -103,6 +106,7 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 				&tumormutationalburden,
 				&sampleLocation,
 				&nukleinsaeure,
+				&panelCode,
 				&panel,
 			); err == nil {
 
@@ -177,9 +181,25 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 				}
 
 				// SEQUENCING_DNA_PLATFORM + SEQUENCING_RNA_PLATFORM
-				// Aktuell keine Dokumentation
+				// Initial values - wenn nicht anders angegeben
 				data.SequencingDnaPlatform = "NA"
 				data.SequencingRnaPlatform = "NA"
+				if value, err := nukleinsaeure.Value(); err == nil && value != nil {
+					if panelCode, err := panelCode.Value(); err == nil && panelCode != nil {
+						// Keine Onkostar-Dokumentation in Wuerzburg
+						// Implementierung fuer WUE_
+						if strings.HasPrefix(data.SampleId, "WUE_") {
+							// DNA
+							if (value == "dna" || value == "dnarna") && (panelCode == "OCAPlus" || panelCode == "OncomineV3" || panelCode == "OFA") {
+								data.SequencingDnaPlatform = "Thermo Fisher"
+							}
+							// RNA
+							if (value == "rna" || value == "dnarna") && (panelCode == "OCAPlus" || panelCode == "AFPLung" || panelCode == "AFPSarc") {
+								data.SequencingRnaPlatform = "Thermo Fisher"
+							}
+						}
+					}
+				}
 
 				// TMB_SCORE
 				if value, err := tumormutationalburden.Value(); err == nil && value != nil {
