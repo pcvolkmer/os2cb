@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -18,21 +17,21 @@ func InitPatients(db *sql.DB) Patients {
 	}
 }
 
-func (patients *Patients) Fetch(patientId string) (*PatientData, error) {
-	query := `SELECT 
+func (patients *Patients) Fetch(patientID string) (*PatientData, error) {
+	query := `SELECT
     	geschlecht,
-       	DATE_FORMAT(FROM_DAYS(DATEDIFF(now(),geburtsdatum)), '%Y')+0 AS geburtsdatum,
-       	sterbedatum 
+      DATE_FORMAT(FROM_DAYS(DATEDIFF(now(),geburtsdatum)), '%Y')+0 AS geburtsdatum,
+      sterbedatum
 		FROM patient WHERE patienten_id = ?`
 
-	if row := db.QueryRow(query, patientId); row != nil {
+	if row := db.QueryRow(query, patientID); row != nil {
 		var sex sql.NullString
 		var geburtsdatum sql.NullInt16
 		var sterbedatum sql.NullString
 
 		if err := row.Scan(&sex, &geburtsdatum, &sterbedatum); err == nil {
 			result := &PatientData{
-				Id: AnonymizedId(patientId),
+				ID: AnonymizedID(patientID),
 			}
 
 			// GENDER + SEX
@@ -64,28 +63,28 @@ func (patients *Patients) Fetch(patientId string) (*PatientData, error) {
 				result.OsStatus = "LIVING"
 			}
 
-			result.MtbEcogStatus = fetchEcogStatus(patientId)
+			result.MtbEcogStatus = fetchEcogStatus(patientID)
 
-			result = appendDiagnoseDaten(patientId, result)
+			result = appendDiagnoseDaten(patientID, result)
 
 			return result, nil
 		}
 	}
-	return nil, errors.New(fmt.Sprintf("Keine Daten zu Patient mit ID '%s'\n", patientId))
+	return nil, fmt.Errorf("keine Daten zu Patient mit ID '%s'", patientID)
 }
 
 // Liest den Karnovsky-Grad des Patienten aus und wandelt diesen in ECOG
-func fetchEcogStatus(patientId string) string {
+func fetchEcogStatus(patientID string) string {
 	query := `SELECT dutb.karnofsky FROM prozedur pro
-		JOIN patient pat on pro.patient_id = pat.id
-        JOIN dk_ukw_tb_basisdaten dutb on pro.id = dutb.id
-        JOIN dk_tumorkonferenz dt on pro.id = dt.id
+		  JOIN patient pat on pro.patient_id = pat.id
+      JOIN dk_ukw_tb_basisdaten dutb on pro.id = dutb.id
+      JOIN dk_tumorkonferenz dt on pro.id = dt.id
 		WHERE dutb.karnofsky IS NOT NULL AND dt.tk = '27' AND pat.patienten_id = ?
 		ORDER BY beginndatum DESC LIMIT 1`
 
 	var karnovsky sql.NullString
 
-	if rows, err := db.Query(query, patientId); err == nil {
+	if rows, err := db.Query(query, patientID); err == nil {
 		for rows.Next() {
 			if err := rows.Scan(&karnovsky); err == nil {
 				if value, err := karnovsky.Value(); err == nil && value != nil {
@@ -124,8 +123,8 @@ func karnovskyToEcog(karnovsky string) string {
 }
 
 // Ermittelt Diagnosedaten zu den Patientendaten und gibt diese zurück
-func appendDiagnoseDaten(patientId string, data *PatientData) *PatientData {
-	query := `SELECT 
+func appendDiagnoseDaten(patientID string, data *PatientData) *PatientData {
+	query := `SELECT
     	icdo3histologie,
     	beginndatum,
     	icd10,
@@ -154,7 +153,7 @@ func appendDiagnoseDaten(patientId string, data *PatientData) *PatientData {
 	var diagnose sql.NullString
 	var osMonth sql.NullInt16
 
-	if row := db.QueryRow(query, patientId, patientId); row != nil {
+	if row := db.QueryRow(query, patientID, patientID); row != nil {
 
 		if err := row.Scan(&icdo3histologie, &beginndatum, &icd10, &fernmetastasen, &diagnose, &osMonth); err == nil {
 			// OS_MONTH
@@ -200,9 +199,9 @@ func appendDiagnoseDaten(patientId string, data *PatientData) *PatientData {
 			WHERE p.patienten_id = ?
 			ORDER BY beginndatum DESC`
 
-	if rows, err := db.Query(queryErkrankungen, patientId); err == nil {
+	if rows, err := db.Query(queryErkrankungen, patientID); err == nil {
 
-		diags := []string{}
+		var diags []string
 		var erkrankung sql.NullString
 
 		for rows.Next() {
@@ -220,7 +219,7 @@ func appendDiagnoseDaten(patientId string, data *PatientData) *PatientData {
 }
 
 type PatientData struct {
-	Id                       string `csv:"PATIENT_ID"`
+	ID                       string `csv:"PATIENT_ID"`
 	Gender                   string `csv:"GENDER"`
 	Sex                      string `csv:"SEX"`
 	Age                      string `csv:"AGE"`

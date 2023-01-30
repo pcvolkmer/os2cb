@@ -3,15 +3,16 @@ package main
 import (
 	"database/sql"
 	"errors"
-	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
 	"os"
 	"strings"
+
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
 )
 
-func contains(patientIds []string, patientId string) bool {
+func contains(patientIds []string, patientID string) bool {
 	for _, elem := range patientIds {
-		if elem == patientId {
+		if elem == patientID {
 			return true
 		}
 	}
@@ -51,10 +52,10 @@ func NewBrowser(patientIds []string, browserType BrowserType, db *sql.DB) *Brows
 
 	inputField = tview.NewInputField().
 		SetLabel("Patienten-IDs (kommagetrennt): ").
-		SetLabelWidth(32).SetText(strings.Join(cli.PatientId, ","))
+		SetLabelWidth(32).SetText(strings.Join(cli.PatientID, ","))
 	inputField.SetChangedFunc(func(text string) {
 		ids := strings.Split(text, ",")
-		patientIds := []string{}
+		var patientIds []string
 		for _, id := range ids {
 			id = strings.TrimSpace(id)
 			if !contains(patientIds, id) {
@@ -236,7 +237,7 @@ func (browser *Browser) createPatientTable(patientIds []string) (*tview.Table, e
 		}
 
 		for idx, item := range data {
-			table.SetCellSimple(idx+1, 0, item.Id)
+			table.SetCellSimple(idx+1, 0, item.ID)
 			table.SetCellSimple(idx+1, 1, item.Gender)
 			table.SetCellSimple(idx+1, 2, item.Sex)
 			table.SetCellSimple(idx+1, 3, item.Age)
@@ -304,8 +305,8 @@ func (browser *Browser) createSampleTable(patientIds []string) (*tview.Table, er
 		}
 
 		for idx, item := range data {
-			table.SetCellSimple(idx+1, 0, item.PatientId)
-			table.SetCellSimple(idx+1, 1, item.SampleId)
+			table.SetCellSimple(idx+1, 0, item.PatientID)
+			table.SetCellSimple(idx+1, 1, item.SampleID)
 			table.SetCellSimple(idx+1, 2, item.SampleLocRefPrimarus)
 			table.SetCellSimple(idx+1, 3, item.SampleMethod)
 			table.SetCellSimple(idx+1, 4, item.SampleLocation)

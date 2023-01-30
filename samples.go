@@ -19,12 +19,12 @@ func InitSamples(db *sql.DB) Samples {
 }
 
 // Aktuell alle Diagnosen/Erkrankungen des Patienten
-func (samples *Samples) Fetch(patientId string) ([]SampleData, error) {
+func (samples *Samples) Fetch(patientID string) ([]SampleData, error) {
 	checkQuery := `SELECT id FROM patient WHERE patienten_id = ?`
-	if row := db.QueryRow(checkQuery, patientId); row != nil {
+	if row := db.QueryRow(checkQuery, patientID); row != nil {
 		var id string
 		if err := row.Scan(&id); err != nil {
-			return nil, errors.New(fmt.Sprintf("Keine Daten zu Patient mit ID '%s'\n", patientId))
+			return nil, fmt.Errorf("keine Daten zu Patient mit ID '%s'", patientID)
 		}
 	}
 
@@ -34,13 +34,13 @@ func (samples *Samples) Fetch(patientId string) ([]SampleData, error) {
 		WHERE pat.patienten_id = ?
 		ORDER BY beginndatum DESC`
 
-	if rows, err := db.Query(query, patientId); err == nil {
-		var erkrankungId string
+	if rows, err := db.Query(query, patientID); err == nil {
+		var erkrankungID string
 		var result []SampleData
 
 		for rows.Next() {
-			if err := rows.Scan(&erkrankungId); err == nil {
-				if samplesForDisease, err := fetchSamplesForDisease(patientId, erkrankungId); err == nil {
+			if err := rows.Scan(&erkrankungID); err == nil {
+				if samplesForDisease, err := fetchSamplesForDisease(patientID, erkrankungID); err == nil {
 					result = append(result, samplesForDisease...)
 				}
 			}
@@ -50,7 +50,7 @@ func (samples *Samples) Fetch(patientId string) ([]SampleData, error) {
 	return nil, errors.New("fetch: No data found")
 }
 
-func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, error) {
+func fetchSamplesForDisease(patientID string, diseaseID string) ([]SampleData, error) {
 
 	query := `SELECT
     	dm.id,
@@ -73,11 +73,11 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 		WHERE ep.erkrankung_id = ?
 		ORDER BY beginndatum DESC`
 
-	if rows, err := db.Query(query, diseaseId); err == nil {
+	if rows, err := db.Query(query, diseaseID); err == nil {
 
-		var result = []SampleData{}
+		var result []SampleData
 
-		anonymizedPatientId := AnonymizedId(patientId)
+		anonymizedPatientID := AnonymizedID(patientID)
 
 		var id sql.NullString
 		var datum sql.NullString
@@ -112,8 +112,8 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 
 				// SAMPLE_ID
 				if einsendenummer, err := einsendenummer.Value(); err == nil && einsendenummer != nil {
-					data.PatientId = anonymizedPatientId
-					data.SampleId = AnonymizedId(fmt.Sprint(einsendenummer))
+					data.PatientID = anonymizedPatientID
+					data.SampleID = AnonymizedID(fmt.Sprint(einsendenummer))
 				} else {
 					continue
 				}
@@ -188,7 +188,7 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 					if panelCode, err := panelCode.Value(); err == nil && panelCode != nil {
 						// Keine Onkostar-Dokumentation in Wuerzburg
 						// Implementierung fuer WUE_
-						if strings.HasPrefix(data.SampleId, "WUE_") {
+						if strings.HasPrefix(data.SampleID, "WUE_") {
 							// DNA
 							if (value == "dna" || value == "dnarna") && (panelCode == "OCAPlus" || panelCode == "OncomineV3" || panelCode == "OFA") {
 								data.SequencingDnaPlatform = "Thermo Fisher"
@@ -234,7 +234,7 @@ func fetchSamplesForDisease(patientId string, diseaseId string) ([]SampleData, e
 }
 
 // Schreibt die Werte TPS, ICS und CPS in bestehende Probendaten und gibt diese dann wieder zurück.
-func immunhisto(prozedurId string, sampleData *SampleData) *SampleData {
+func immunhisto(prozedurID string, sampleData *SampleData) *SampleData {
 	query := `SELECT gen, tps, ic_score, cps FROM dk_molekularimmunhisto
     	JOIN prozedur_prozedur pp ON pp.prozedur2 = dk_molekularimmunhisto.id
     	WHERE pp.prozedur1 = ?`
@@ -249,7 +249,7 @@ func immunhisto(prozedurId string, sampleData *SampleData) *SampleData {
 	sampleData.Ics = "NA"
 	sampleData.Cps = "NA"
 
-	if row := db.QueryRow(query, prozedurId); row != nil {
+	if row := db.QueryRow(query, prozedurID); row != nil {
 		if err := row.Scan(&gen, &tps, &icScore, &cps); err == nil {
 			if value, err := gen.Value(); err == nil && value != nil {
 				if value == "PDL1" {
@@ -274,7 +274,7 @@ func immunhisto(prozedurId string, sampleData *SampleData) *SampleData {
 }
 
 // Schreibt die Werte TPS_PANEL, MSI_PCR und MSI_IG in bestehende Probendaten und gibt diese dann wieder zurück.
-func msi(prozedurId string, sampleData *SampleData) *SampleData {
+func msi(prozedurID string, sampleData *SampleData) *SampleData {
 	query := `SELECT ergebnismsi, feldwert FROM prozedur_prozedur pp
 		JOIN dk_molekulargenetik ON pp.prozedur1 = dk_molekulargenetik.id
 		JOIN dk_molekluargenmsi ON pp.prozedur2 = dk_molekluargenmsi.id
@@ -289,7 +289,7 @@ func msi(prozedurId string, sampleData *SampleData) *SampleData {
 	sampleData.MsiPcr = "NA"
 	sampleData.MsiIg = "NA"
 
-	if rows, err := db.Query(query, prozedurId); err == nil {
+	if rows, err := db.Query(query, prozedurID); err == nil {
 		for rows.Next() {
 			if err := rows.Scan(&ergebnisMsi, &feldwert); err == nil {
 				if feldwert, err := feldwert.Value(); err == nil && feldwert != nil {
@@ -314,8 +314,8 @@ func msi(prozedurId string, sampleData *SampleData) *SampleData {
 }
 
 type SampleData struct {
-	PatientId             string `csv:"PATIENT_ID"`
-	SampleId              string `csv:"SAMPLE_ID"`
+	PatientID             string `csv:"PATIENT_ID"`
+	SampleID              string `csv:"SAMPLE_ID"`
 	SampleLocRefPrimarus  string `csv:"SAMPLE_LOC_REF_PRIMARUS"`
 	SampleMethod          string `csv:"SAMPLE_METHOD"`
 	SampleLocation        string `csv:"SAMPLE_LOCATION"`

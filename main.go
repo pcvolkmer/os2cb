@@ -6,17 +6,18 @@ import (
 	"encoding/csv"
 	"encoding/hex"
 	"fmt"
+	"io"
+	"log"
+	"strings"
+	"syscall"
+	_ "syscall"
+
 	"github.com/alecthomas/kong"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gocarina/gocsv"
 	"golang.org/x/term"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
-	"io"
-	"log"
-	"strings"
-	"syscall"
-	_ "syscall"
 )
 
 var (
@@ -31,8 +32,8 @@ type Globals struct {
 	Host      string   `short:"H" help:"Database host" default:"localhost"`
 	Port      int      `help:"Database port" default:"3306"`
 	Database  string   `short:"D" help:"Database name" default:"onkostar"`
-	PatientId []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs"`
-	IdPrefix  string   `help:"Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben." default:"WUE"`
+	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs"`
+	IDPrefix  string   `help:"Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben." default:"WUE"`
 	Filename  string   `help:"Exportiere in diese Datei"`
 	Append    bool     `help:"An bestehende Datei anhängen"`
 	Csv       bool     `help:"Verwende CSV-Format anstelle TSV-Format. Trennung mit ';' für MS Excel" default:"false"`
@@ -112,12 +113,12 @@ func main() {
 
 }
 
-func AnonymizedId(id string) string {
+func AnonymizedID(id string) string {
 	sha := sha256.New()
 	sha.Write([]byte(id))
 	hash := hex.EncodeToString(sha.Sum(nil))
 
-	return cli.IdPrefix + "_" + hash[0:10]
+	return cli.IDPrefix + "_" + hash[0:10]
 }
 
 // Übergibt Methode zum Erstellen des passenden CsvWriters für TSV (cBioportal) oder CSV (Excel mit UTF16BE)
@@ -170,7 +171,7 @@ func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc f
 		}
 	}
 
-	if r, err := fetchFunc(cli.PatientId, db); err == nil {
+	if r, err := fetchFunc(cli.PatientID, db); err == nil {
 		result = append(result, r...)
 	} else {
 		log.Fatalln(err.Error())
@@ -182,19 +183,19 @@ func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc f
 }
 
 func displayPatients(db *sql.DB) {
-	NewBrowser(cli.PatientId, Patient, db).Show()
+	NewBrowser(cli.PatientID, Patient, db).Show()
 }
 
 func displaySamples(db *sql.DB) {
-	NewBrowser(cli.PatientId, Patient, db).Show()
+	NewBrowser(cli.PatientID, Patient, db).Show()
 }
 
 // Ermittelt alle Patientendaten von allen angegebenen Patienten
 func FetchAllPatientData(patientIds []string, db *sql.DB) ([]PatientData, error) {
 	patients := InitPatients(db)
 	var result []PatientData
-	for _, patientId := range patientIds {
-		if data, err := patients.Fetch(patientId); err == nil {
+	for _, patientID := range patientIds {
+		if data, err := patients.Fetch(patientID); err == nil {
 			result = append(result, *data)
 		} else {
 			if !strings.HasPrefix(context.Command(), "display") {
@@ -209,8 +210,8 @@ func FetchAllPatientData(patientIds []string, db *sql.DB) ([]PatientData, error)
 func FetchAllSampleData(patientIds []string, db *sql.DB) ([]SampleData, error) {
 	samples := InitSamples(db)
 	var result []SampleData
-	for _, patientId := range patientIds {
-		if data, err := samples.Fetch(patientId); err == nil {
+	for _, patientID := range patientIds {
+		if data, err := samples.Fetch(patientID); err == nil {
 			for _, d := range data {
 				result = append(result, d)
 			}

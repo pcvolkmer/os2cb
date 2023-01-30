@@ -3,17 +3,18 @@ package main
 import (
 	_ "embed"
 	"errors"
-	"github.com/gocarina/gocsv"
 	"log"
 	"os"
 	"reflect"
+
+	"github.com/gocarina/gocsv"
 )
 
 //go:embed resources/prefix-data_clinical_patient.txt
-var prefix_data_clinical_patient string
+var prefixDataClinicalPatient string
 
 //go:embed resources/prefix-data_clinical_sample.txt
-var prefix_data_clinical_sample string
+var prefixDataClinicalSample string
 
 // Liest eine bestehende Datei ein
 func ReadFile[D PatientData | SampleData](filename string, data []D) ([]D, error) {
@@ -44,9 +45,9 @@ func WriteFile[D PatientData | SampleData](filename string, data []D) error {
 	if output, err := gocsv.MarshalString(data); err == nil {
 		// Prepend CSV comments bc cBioportal will result in errors without them
 		if reflect.TypeOf(data) == reflect.TypeOf([]PatientData{}) {
-			output = prefix_data_clinical_patient + output
+			output = prefixDataClinicalPatient + output
 		} else if reflect.TypeOf(data) == reflect.TypeOf([]SampleData{}) {
-			output = prefix_data_clinical_sample + output
+			output = prefixDataClinicalSample + output
 		}
 
 		if _, err := file.Write([]byte(output)); err != nil {
