@@ -20,8 +20,8 @@ func InitPatients(db *sql.DB) Patients {
 func (patients *Patients) Fetch(patientID string) (*PatientData, error) {
 	query := `SELECT
     	geschlecht,
-      DATE_FORMAT(FROM_DAYS(DATEDIFF(now(),geburtsdatum)), '%Y')+0 AS geburtsdatum,
-      sterbedatum
+    	DATE_FORMAT(FROM_DAYS(DATEDIFF(now(),geburtsdatum)), '%Y')+0 AS geburtsdatum,
+    	sterbedatum
 		FROM patient WHERE patienten_id = ?`
 
 	if row := db.QueryRow(query, patientID); row != nil {
@@ -76,9 +76,9 @@ func (patients *Patients) Fetch(patientID string) (*PatientData, error) {
 // Liest den Karnovsky-Grad des Patienten aus und wandelt diesen in ECOG
 func fetchEcogStatus(patientID string) string {
 	query := `SELECT dutb.karnofsky FROM prozedur pro
-		  JOIN patient pat on pro.patient_id = pat.id
-      JOIN dk_ukw_tb_basisdaten dutb on pro.id = dutb.id
-      JOIN dk_tumorkonferenz dt on pro.id = dt.id
+		JOIN patient pat on pro.patient_id = pat.id
+    	JOIN dk_ukw_tb_basisdaten dutb on pro.id = dutb.id
+    	JOIN dk_tumorkonferenz dt on pro.id = dt.id
 		WHERE dutb.karnofsky IS NOT NULL AND dt.tk = '27' AND pat.patienten_id = ?
 		ORDER BY beginndatum DESC LIMIT 1`
 

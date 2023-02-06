@@ -55,7 +55,7 @@ type CLI struct {
 	} `cmd:"" help:"Show sample data. Exit Display-Mode with <CTRL>+'C'"`
 }
 
-func init() {
+func initCLI() {
 	cli = &CLI{
 		Globals: Globals{},
 	}
@@ -70,6 +70,8 @@ func init() {
 }
 
 func main() {
+
+	initCLI()
 
 	if len(cli.Password) == 0 {
 		fmt.Print("Passwort: ")
