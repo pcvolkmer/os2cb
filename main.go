@@ -27,14 +27,14 @@ var (
 )
 
 type Globals struct {
-	User      string   `short:"U" help:"Database username"`
+	User      string   `short:"U" help:"Database username" required:""`
 	Password  string   `short:"P" help:"Database password"`
 	Host      string   `short:"H" help:"Database host" default:"localhost"`
 	Port      int      `help:"Database port" default:"3306"`
 	Database  string   `short:"D" help:"Database name" default:"onkostar"`
 	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs"`
 	IDPrefix  string   `help:"Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben." default:"WUE"`
-	Filename  string   `help:"Exportiere in diese Datei"`
+	Filename  string   `help:"Exportiere in diese Datei" required:""`
 	Append    bool     `help:"An bestehende Datei anhängen"`
 	Csv       bool     `help:"Verwende CSV-Format anstelle TSV-Format. Trennung mit ';' für MS Excel" default:"false"`
 }
