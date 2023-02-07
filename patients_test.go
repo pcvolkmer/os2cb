@@ -4,8 +4,8 @@ import (
 	"testing"
 )
 
-func TestShouldReturnEcogForKarnovsky100WithoutPercent(t *testing.T) {
-	actual := karnovskyToEcog("100")
+func TestShouldReturnEcogForKarnofsky100WithoutPercent(t *testing.T) {
+	actual := karnofskyToEcog("100")
 	expected := "0"
 	if actual != expected {
 		t.Logf("wrong ecog: Expected %s, got %s", expected, actual)
@@ -13,8 +13,8 @@ func TestShouldReturnEcogForKarnovsky100WithoutPercent(t *testing.T) {
 	}
 }
 
-func TestShouldReturnEcogForKarnovsky100(t *testing.T) {
-	actual := karnovskyToEcog("100%")
+func TestShouldReturnEcogForKarnofsky100(t *testing.T) {
+	actual := karnofskyToEcog("100%")
 	expected := "0"
 	if actual != expected {
 		t.Logf("wrong ecog: Expected %s, got %s", expected, actual)
@@ -22,8 +22,8 @@ func TestShouldReturnEcogForKarnovsky100(t *testing.T) {
 	}
 }
 
-func TestShouldReturnEcogForKarnovsky90(t *testing.T) {
-	actual := karnovskyToEcog("90%")
+func TestShouldReturnEcogForKarnofsky90(t *testing.T) {
+	actual := karnofskyToEcog("90%")
 	expected := "0"
 	if actual != expected {
 		t.Logf("wrong ecog: Expected %s, got %s", expected, actual)
@@ -31,8 +31,8 @@ func TestShouldReturnEcogForKarnovsky90(t *testing.T) {
 	}
 }
 
-func TestShouldReturnEcogForKarnovsky80(t *testing.T) {
-	actual := karnovskyToEcog("80%")
+func TestShouldReturnEcogForKarnofsky80(t *testing.T) {
+	actual := karnofskyToEcog("80%")
 	expected := "1"
 	if actual != expected {
 		t.Logf("wrong ecog: Expected %s, got %s", expected, actual)
@@ -40,8 +40,8 @@ func TestShouldReturnEcogForKarnovsky80(t *testing.T) {
 	}
 }
 
-func TestShouldReturnEcogForKarnovsky70(t *testing.T) {
-	actual := karnovskyToEcog("70%")
+func TestShouldReturnEcogForKarnofsky70(t *testing.T) {
+	actual := karnofskyToEcog("70%")
 	expected := "1"
 	if actual != expected {
 		t.Logf("wrong ecog: Expected %s, got %s", expected, actual)
@@ -49,8 +49,8 @@ func TestShouldReturnEcogForKarnovsky70(t *testing.T) {
 	}
 }
 
-func TestShouldReturnEcogForKarnovsky60(t *testing.T) {
-	actual := karnovskyToEcog("60%")
+func TestShouldReturnEcogForKarnofsky60(t *testing.T) {
+	actual := karnofskyToEcog("60%")
 	expected := "2"
 	if actual != expected {
 		t.Logf("wrong ecog: Expected %s, got %s", expected, actual)
@@ -58,8 +58,8 @@ func TestShouldReturnEcogForKarnovsky60(t *testing.T) {
 	}
 }
 
-func TestShouldReturnEcogForKarnovsky50(t *testing.T) {
-	actual := karnovskyToEcog("50%")
+func TestShouldReturnEcogForKarnofsky50(t *testing.T) {
+	actual := karnofskyToEcog("50%")
 	expected := "2"
 	if actual != expected {
 		t.Logf("wrong ecog: Expected %s, got %s", expected, actual)
@@ -67,8 +67,8 @@ func TestShouldReturnEcogForKarnovsky50(t *testing.T) {
 	}
 }
 
-func TestShouldReturnEcogForKarnovsky40(t *testing.T) {
-	actual := karnovskyToEcog("40%")
+func TestShouldReturnEcogForKarnofsky40(t *testing.T) {
+	actual := karnofskyToEcog("40%")
 	expected := "3"
 	if actual != expected {
 		t.Logf("wrong ecog: Expected %s, got %s", expected, actual)
@@ -76,8 +76,8 @@ func TestShouldReturnEcogForKarnovsky40(t *testing.T) {
 	}
 }
 
-func TestShouldReturnEcogForKarnovsky30(t *testing.T) {
-	actual := karnovskyToEcog("30%")
+func TestShouldReturnEcogForKarnofsky30(t *testing.T) {
+	actual := karnofskyToEcog("30%")
 	expected := "3"
 	if actual != expected {
 		t.Logf("wrong ecog: Expected %s, got %s", expected, actual)
@@ -85,8 +85,8 @@ func TestShouldReturnEcogForKarnovsky30(t *testing.T) {
 	}
 }
 
-func TestShouldReturnEcogForKarnovsky20(t *testing.T) {
-	actual := karnovskyToEcog("20%")
+func TestShouldReturnEcogForKarnofsky20(t *testing.T) {
+	actual := karnofskyToEcog("20%")
 	expected := "4"
 	if actual != expected {
 		t.Logf("wrong ecog: Expected %s, got %s", expected, actual)
@@ -94,8 +94,8 @@ func TestShouldReturnEcogForKarnovsky20(t *testing.T) {
 	}
 }
 
-func TestShouldReturnEcogForKarnovsky10(t *testing.T) {
-	actual := karnovskyToEcog("10%")
+func TestShouldReturnEcogForKarnofsky10(t *testing.T) {
+	actual := karnofskyToEcog("10%")
 	expected := "4"
 	if actual != expected {
 		t.Logf("wrong ecog: Expected %s, got %s", expected, actual)
@@ -103,8 +103,8 @@ func TestShouldReturnEcogForKarnovsky10(t *testing.T) {
 	}
 }
 
-func TestShouldReturnEcogForKarnovsky0(t *testing.T) {
-	actual := karnovskyToEcog("0%")
+func TestShouldReturnEcogForKarnofsky0(t *testing.T) {
+	actual := karnofskyToEcog("0%")
 	expected := "5"
 	if actual != expected {
 		t.Logf("wrong ecog: Expected %s, got %s", expected, actual)

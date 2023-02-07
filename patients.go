@@ -73,7 +73,7 @@ func (patients *Patients) Fetch(patientID string) (*PatientData, error) {
 	return nil, fmt.Errorf("keine Daten zu Patient mit ID '%s'", patientID)
 }
 
-// Liest den Karnovsky-Grad des Patienten aus und wandelt diesen in ECOG
+// Liest den Karnofsky-Grad des Patienten aus und wandelt diesen in ECOG
 func fetchEcogStatus(patientID string) string {
 	query := `SELECT dutb.karnofsky FROM prozedur pro
 		JOIN patient pat on pro.patient_id = pat.id
@@ -82,13 +82,13 @@ func fetchEcogStatus(patientID string) string {
 		WHERE dutb.karnofsky IS NOT NULL AND dt.tk = '27' AND pat.patienten_id = ?
 		ORDER BY beginndatum DESC LIMIT 1`
 
-	var karnovsky sql.NullString
+	var karnofsky sql.NullString
 
 	if rows, err := db.Query(query, patientID); err == nil {
 		for rows.Next() {
-			if err := rows.Scan(&karnovsky); err == nil {
-				if value, err := karnovsky.Value(); err == nil && value != nil {
-					return karnovskyToEcog(fmt.Sprint(value))
+			if err := rows.Scan(&karnofsky); err == nil {
+				if value, err := karnofsky.Value(); err == nil && value != nil {
+					return karnofskyToEcog(fmt.Sprint(value))
 				}
 			}
 		}
@@ -96,23 +96,23 @@ func fetchEcogStatus(patientID string) string {
 	return "NA"
 }
 
-// Ermittelt den ECOG anhand des Karnovsky-Grads
-func karnovskyToEcog(karnovsky string) string {
+// Ermittelt den ECOG anhand des Karnofsky-Grads
+func karnofskyToEcog(karnofsky string) string {
 
 	// Plain percent number
-	karnovsky = strings.ReplaceAll(karnovsky, "%", "")
-	karnovsky = strings.TrimSpace(karnovsky)
+	karnofsky = strings.ReplaceAll(karnofsky, "%", "")
+	karnofsky = strings.TrimSpace(karnofsky)
 
-	if karnovskyGrade, err := strconv.Atoi(karnovsky); err == nil {
-		if karnovskyGrade >= 90 {
+	if karnofskyGrade, err := strconv.Atoi(karnofsky); err == nil {
+		if karnofskyGrade >= 90 {
 			return "0"
-		} else if karnovskyGrade >= 70 {
+		} else if karnofskyGrade >= 70 {
 			return "1"
-		} else if karnovskyGrade >= 50 {
+		} else if karnofskyGrade >= 50 {
 			return "2"
-		} else if karnovskyGrade >= 30 {
+		} else if karnofskyGrade >= 30 {
 			return "3"
-		} else if karnovskyGrade > 0 {
+		} else if karnofskyGrade > 0 {
 			return "4"
 		} else {
 			return "5"
