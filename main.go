@@ -34,18 +34,21 @@ type Globals struct {
 	Database  string   `short:"D" help:"Database name" default:"onkostar"`
 	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs"`
 	IDPrefix  string   `help:"Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben." default:"WUE"`
-	Filename  string   `help:"Exportiere in diese Datei" required:""`
-	Append    bool     `help:"An bestehende Datei anhängen"`
-	Csv       bool     `help:"Verwende CSV-Format anstelle TSV-Format. Trennung mit ';' für MS Excel" default:"false"`
 }
 
 type CLI struct {
 	Globals
 
 	ExportPatients struct {
+		Filename string `help:"Exportiere in diese Datei" required:""`
+		Append   bool   `help:"An bestehende Datei anhängen" default:"false"`
+		Csv      bool   `help:"Verwende CSV-Format anstelle TSV-Format. Trennung mit ';' für MS Excel" default:"false"`
 	} `cmd:"" help:"Export patient data"`
 
 	ExportSamples struct {
+		Filename string `help:"Exportiere in diese Datei" required:""`
+		Append   bool   `help:"An bestehende Datei anhängen" default:"false"`
+		Csv      bool   `help:"Verwende CSV-Format anstelle TSV-Format. Trennung mit ';' für MS Excel" default:"false"`
 	} `cmd:"" help:"Export sample data"`
 
 	DisplayPatients struct {
@@ -97,8 +100,8 @@ func main() {
 		log.Fatalf("Cannot connect to Database: %s\n", err.Error())
 	}
 
-	gocsv.SetCSVWriter(getCsvWriter(cli.Csv))
-	gocsv.SetCSVReader(getCsvReader(cli.Csv))
+	gocsv.SetCSVWriter(getCsvWriter(cli.ExportPatients.Csv || cli.ExportSamples.Csv))
+	gocsv.SetCSVReader(getCsvReader(cli.ExportPatients.Csv || cli.ExportSamples.Csv))
 
 	switch context.Command() {
 	case "export-patients":
@@ -165,8 +168,15 @@ func getCsvReader(isCsv bool) func(in io.Reader) gocsv.CSVReader {
 // Bearbeitet die Ausführung und ermittelt Daten abhängig von übergebener Funktion
 func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc func(patientIds []string, db *sql.DB) ([]D, error)) {
 	var result []D
-	if cli.Append {
-		if r, err := ReadFile(cli.Filename, result); err == nil {
+	var filename string
+	if len(cli.ExportPatients.Filename) > 0 {
+		filename = cli.ExportPatients.Filename
+	} else if len(cli.ExportSamples.Filename) > 0 {
+		filename = cli.ExportSamples.Filename
+	}
+
+	if cli.ExportPatients.Append || cli.ExportSamples.Append {
+		if r, err := ReadFile(filename, result); err == nil {
 			result = r
 		} else {
 			log.Fatalln(err.Error())
@@ -179,7 +189,7 @@ func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc f
 		log.Fatalln(err.Error())
 	}
 
-	if err := WriteFile(cli.Filename, result); err != nil {
+	if err := WriteFile(filename, result); err != nil {
 		log.Fatalln(err.Error())
 	}
 }
