@@ -38,13 +38,13 @@ type Browser struct {
 	table      *tview.Table
 }
 
-func NewBrowser(patientIds []string, browserType BrowserType, db *sql.DB) *Browser {
+func NewBrowser(patientIds []string, db *sql.DB) *Browser {
 	var inputField *tview.InputField
 	var dropDown *tview.DropDown
 
 	browser := &Browser{
 		db:          db,
-		browserType: browserType,
+		browserType: Patient,
 		patientIds:  patientIds,
 		app:         tview.NewApplication(),
 		grid:        tview.NewGrid().SetRows(2, 2, 0, 1),

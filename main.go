@@ -51,11 +51,8 @@ type CLI struct {
 		Csv      bool   `help:"Verwende CSV-Format anstelle TSV-Format. Trennung mit ';' für MS Excel" default:"false"`
 	} `cmd:"" help:"Export sample data"`
 
-	DisplayPatients struct {
-	} `cmd:"" help:"Show patient data. Exit Display-Mode with <CTRL>+'C'"`
-
-	DisplaySamples struct {
-	} `cmd:"" help:"Show sample data. Exit Display-Mode with <CTRL>+'C'"`
+	Preview struct {
+	} `cmd:"" help:"Show patient data. Exit Preview-Mode with <CTRL>+'C'"`
 }
 
 func initCLI() {
@@ -108,10 +105,8 @@ func main() {
 		handleCommand(cli, db, FetchAllPatientData)
 	case "export-samples":
 		handleCommand(cli, db, FetchAllSampleData)
-	case "display-patients":
-		displayPatients(db)
-	case "display-samples":
-		displaySamples(db)
+	case "preview":
+		preview(db)
 	default:
 
 	}
@@ -194,12 +189,8 @@ func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc f
 	}
 }
 
-func displayPatients(db *sql.DB) {
-	NewBrowser(cli.PatientID, Patient, db).Show()
-}
-
-func displaySamples(db *sql.DB) {
-	NewBrowser(cli.PatientID, Patient, db).Show()
+func preview(db *sql.DB) {
+	NewBrowser(cli.PatientID, db).Show()
 }
 
 // Ermittelt alle Patientendaten von allen angegebenen Patienten
