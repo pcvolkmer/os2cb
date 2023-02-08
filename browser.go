@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"errors"
 	"os"
 	"strings"
 
@@ -184,20 +183,18 @@ func (browser *Browser) replaceTable() {
 func (browser *Browser) createTable(patientIds []string) (*tview.Table, error) {
 	var table *tview.Table
 
-	if browser.browserType == Patient {
-		if t, err := browser.createPatientTable(patientIds); err != nil {
-			table = t
-		} else {
-			return t, err
-		}
-	} else if browser.browserType == Sample {
+	if browser.browserType == Sample {
 		if t, err := browser.createSampleTable(patientIds); err != nil {
 			table = t
 		} else {
 			return t, err
 		}
 	} else {
-		return nil, errors.New("unknown browser type")
+		if t, err := browser.createPatientTable(patientIds); err != nil {
+			table = t
+		} else {
+			return t, err
+		}
 	}
 
 	return table, nil
