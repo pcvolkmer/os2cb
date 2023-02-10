@@ -3,6 +3,8 @@
 .gitignore
 !/resources
 !/resources/**
+!/.github
+!/.github/**
 !/*.go
 !/*.mod
 !/*.md
