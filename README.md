@@ -21,15 +21,19 @@ Flags:
   -D, --database="onkostar"          Database name
       --patient-id=PATIENT-ID,...    PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs
       --id-prefix="WUE"              Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben.
+
+Commands:
+  export-patients    Export patient data
+  export-samples     Export sample data
+  preview            Show patient data. Exit Preview-Mode with <CTRL>+'C'
+```
+
+Zusätzliche Optionen für die Befehle `export-patient` und `export-samples`
+
+```
       --filename=STRING              Exportiere in diese Datei
       --append                       An bestehende Datei anhängen
       --csv                          Verwende CSV-Format anstelle TSV-Format (UTF-16 und Trennung mit ';' zur Verwendung mit MS Excel)
-
-Commands:
-  export-patients     Export patient data
-  export-samples      Export sample data
-  display-patients    Show patient data. Exit Display-Mode with <CTRL>+'C'
-  display-samples     Show sample data. Exit Display-Mode with <CTRL>+'C'
 ```
 
 ### Hinweis zu Passwörtern
