@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"log"
 	"os"
 	"strings"
 
@@ -148,6 +149,10 @@ func NewBrowser(patientIds []string, db *sql.DB) *Browser {
 
 func (browser *Browser) Show() {
 	if err := browser.app.SetRoot(browser.grid, true).Run(); err == nil {
+		err := db.Close()
+		if err != nil {
+			log.Println("Cannot close database connection")
+		}
 		os.Exit(0)
 	}
 }
