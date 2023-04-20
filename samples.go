@@ -275,12 +275,13 @@ func immunhisto(prozedurID string, sampleData *SampleData) *SampleData {
 
 // Schreibt die Werte TPS_PANEL, MSI_PCR und MSI_IG in bestehende Probendaten und gibt diese dann wieder zurück.
 func msi(prozedurID string, sampleData *SampleData) *SampleData {
-	query := `SELECT ergebnismsi, feldwert FROM prozedur_prozedur pp
+	query := `SELECT pcrergebnis, ergebnismsi, feldwert FROM prozedur_prozedur pp
 		JOIN dk_molekulargenetik ON pp.prozedur1 = dk_molekulargenetik.id
 		JOIN dk_molekluargenmsi ON pp.prozedur2 = dk_molekluargenmsi.id
 		JOIN dk_molekluargenmsi_merkmale mm ON mm.eintrag_id = prozedur2
 		WHERE pp.prozedur1 = ?`
 
+	var pcrergebnis sql.NullString
 	var ergebnisMsi sql.NullString
 	var feldwert sql.NullString
 
@@ -291,7 +292,7 @@ func msi(prozedurID string, sampleData *SampleData) *SampleData {
 
 	if rows, err := db.Query(query, prozedurID); err == nil {
 		for rows.Next() {
-			if err := rows.Scan(&ergebnisMsi, &feldwert); err == nil {
+			if err := rows.Scan(&pcrergebnis, &ergebnisMsi, &feldwert); err == nil {
 				if feldwert, err := feldwert.Value(); err == nil && feldwert != nil {
 					if ergebnisMsi, err := ergebnisMsi.Value(); err == nil && ergebnisMsi != nil {
 						if feldwert == "S" {
@@ -299,11 +300,16 @@ func msi(prozedurID string, sampleData *SampleData) *SampleData {
 							sampleData.MsiPanel = fmt.Sprint(ergebnisMsi)
 						} else if feldwert == "P" {
 							// MSI_PCR
-							sampleData.MsiPcr = fmt.Sprint(ergebnisMsi)
+							// sampleData.MsiPcr = fmt.Sprint(ergebnisMsi)
 						} else if feldwert == "I" {
 							// MSI_IG
 							sampleData.MsiIg = fmt.Sprint(ergebnisMsi)
 						}
+					}
+
+					// OS.Molekulargenetik ab Rev 54
+					if pcrergebnis, err := pcrergebnis.Value(); err == nil && pcrergebnis != nil {
+						sampleData.MsiPcr = fmt.Sprint(pcrergebnis)
 					}
 				}
 			}
