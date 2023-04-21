@@ -201,7 +201,7 @@ func fetchSamplesForDisease(patientID string, diseaseID string) ([]SampleData, e
 					}
 				}
 
-				// TMB_SCORE
+				// TMB_SCORE aus alten Formular "OS.Molekulargenetik" vor rev 81
 				if value, err := tumormutationalburden.Value(); err == nil && value != nil {
 					data.TmbScore = fmt.Sprint(value)
 				} else {
@@ -211,6 +211,9 @@ func fetchSamplesForDisease(patientID string, diseaseID string) ([]SampleData, e
 				if id, err := id.Value(); err == nil && id != nil {
 					data = *immunhisto(fmt.Sprint(id), &data)
 					data = *msi(fmt.Sprint(id), &data)
+
+					// TMB_SCORE aus neuem Formular "OS.Molekulargenetik" ab rev 81
+					data = *tmb(fmt.Sprint(id), &data)
 				}
 
 				data.Her2Fish = "NA"
@@ -312,6 +315,26 @@ func msi(prozedurID string, sampleData *SampleData) *SampleData {
 					if pcrergebnis, err := pcrergebnis.Value(); err == nil && pcrergebnis != nil {
 						sampleData.MsiPcr = fmt.Sprint(pcrergebnis)
 					}
+				}
+			}
+		}
+	}
+
+	return sampleData
+}
+
+func tmb(prozedurID string, sampleData *SampleData) *SampleData {
+	query := `SELECT tumormutationalburden FROM dk_molekluargenmsi
+    	JOIN prozedur_prozedur pp ON pp.prozedur2 = dk_molekluargenmsi.id
+		WHERE tumormutationalburden IS NOT NULL AND pp.prozedur1 = ?`
+
+	var tumormutationalburden sql.NullString
+
+	if rows, err := db.Query(query, prozedurID); err == nil {
+		for rows.Next() {
+			if err := rows.Scan(&tumormutationalburden); err == nil {
+				if tumormutationalburden, err := tumormutationalburden.Value(); err == nil && tumormutationalburden != nil {
+					sampleData.TmbScore = fmt.Sprint(tumormutationalburden)
 				}
 			}
 		}
