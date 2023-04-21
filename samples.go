@@ -308,6 +308,7 @@ func msi(prozedurID string, sampleData *SampleData) *SampleData {
 					}
 
 					// OS.Molekulargenetik ab Rev 54
+					// In OS 2.11.1.6 mit Bib-Vesion 6.6 (Rev 81) nicht mehr in Formular verfügbar
 					if pcrergebnis, err := pcrergebnis.Value(); err == nil && pcrergebnis != nil {
 						sampleData.MsiPcr = fmt.Sprint(pcrergebnis)
 					}
