@@ -118,14 +118,14 @@ func fetchSamplesForDisease(patientID string, diseaseID string) ([]SampleData, e
 					continue
 				}
 
+				data.SampleLocRefPrimarus = "NA"
+
 				// SAMPLE_LOC_REF_PRIMARIUS
 				if value, err := probenmaterial.Value(); err == nil && value != nil {
 					if value == "T" {
 						data.SampleLocRefPrimarus = "Primaertumor"
 					} else if value == "M" {
 						data.SampleLocRefPrimarus = "Metastase"
-					} else {
-						data.SampleLocRefPrimarus = "Unbekannt"
 					}
 				}
 
