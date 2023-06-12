@@ -35,6 +35,7 @@ type Globals struct {
 	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs"`
 	IDPrefix  string   `help:"Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben." default:"WUE"`
 	AllTk     bool     `help:"Diagnosen: Erlaube Diagnosen mit allen Tumorkonferenzen, nicht nur Diagnosen mit MTBs"`
+	NoAnon    bool     `help:"Keine ID-Anonymisierung anwenden. Hierbei wird auch das ID-Prefix ignoriert."`
 }
 
 type CLI struct {
@@ -115,6 +116,10 @@ func main() {
 }
 
 func AnonymizedID(id string) string {
+	if cli.NoAnon {
+		return id
+	}
+
 	sha := sha256.New()
 	sha.Write([]byte(id))
 	hash := hex.EncodeToString(sha.Sum(nil))
