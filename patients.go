@@ -17,7 +17,7 @@ func InitPatients(db *sql.DB) Patients {
 	}
 }
 
-func (patients *Patients) Fetch(patientID string) (*PatientData, error) {
+func (patients *Patients) Fetch(patientID string, allTk bool) (*PatientData, error) {
 	query := `SELECT
     	geschlecht,
     	DATE_FORMAT(FROM_DAYS(DATEDIFF(now(),geburtsdatum)), '%Y')+0 AS geburtsdatum,
@@ -65,7 +65,7 @@ func (patients *Patients) Fetch(patientID string) (*PatientData, error) {
 
 			result.MtbEcogStatus = fetchEcogStatus(patientID)
 
-			result = appendDiagnoseDaten(patientID, result)
+			result = appendDiagnoseDaten(patientID, result, allTk)
 
 			return result, nil
 		}
@@ -123,7 +123,7 @@ func karnofskyToEcog(karnofsky string) string {
 }
 
 // Ermittelt Diagnosedaten zu den Patientendaten und gibt diese zurück
-func appendDiagnoseDaten(patientID string, data *PatientData) *PatientData {
+func appendDiagnoseDaten(patientID string, data *PatientData, allTk bool) *PatientData {
 	query := `SELECT
     	icdo3histologie,
     	beginndatum,
@@ -141,7 +141,7 @@ func appendDiagnoseDaten(patientID string, data *PatientData) *PatientData {
 				JOIN prozedur pro on dk_tumorkonferenz.id = pro.id
 				JOIN patient pat on pro.patient_id = pat.id
 				JOIN erkrankung_prozedur ep ON ep.prozedur_id = pro.id
-				WHERE pat.patienten_id = ? AND dk_tumorkonferenz.tk = '27'
+				WHERE pat.patienten_id = ? AND (dk_tumorkonferenz.tk = '27' OR 1 = ?)
 				ORDER BY beginndatum DESC
 		)
 		ORDER BY beginndatum DESC;`
@@ -153,7 +153,7 @@ func appendDiagnoseDaten(patientID string, data *PatientData) *PatientData {
 	var diagnose sql.NullString
 	var osMonth sql.NullInt16
 
-	if row := db.QueryRow(query, patientID, patientID); row != nil {
+	if row := db.QueryRow(query, patientID, patientID, allTk); row != nil {
 
 		if err := row.Scan(&icdo3histologie, &beginndatum, &icd10, &fernmetastasen, &diagnose, &osMonth); err == nil {
 			// OS_MONTH
