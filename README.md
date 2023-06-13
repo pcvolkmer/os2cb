@@ -21,6 +21,8 @@ Flags:
   -D, --database="onkostar"          Database name
       --patient-id=PATIENT-ID,...    PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs
       --id-prefix="WUE"              Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben.
+      --all-tk                       Diagnosen: Erlaube Diagnosen mit allen Tumorkonferenzen, nicht nur Diagnosen mit MTBs
+      --no-anon                      Keine ID-Anonymisierung anwenden. Hierbei wird auch das ID-Prefix ignoriert.
 
 Commands:
   export-patients    Export patient data
@@ -45,6 +47,11 @@ Wird das Passwort nicht als Parameter angegeben, so wird im Anschluss danach gef
 Für den Export im CSV-Format wird zur Kompatibilität mit MS Excel der UTF-16 Zeichensatz verwendet. Das Trennzeichen ist dabei `;`.
 Es handelt sich daher **nicht** um eine CSV-Datei nach [RFC 4180](https://www.rfc-editor.org/rfc/rfc4180).
 
+### Hinweis zu Diagnosen
+
+Generell verwendet die Anwendung nur Diagnosen, denen ein MTB (Tumorkonferenz mit Typ "27") zugeordnet ist.
+Mit der Option `--all-tk` werden alle Diagnosen berücksichtigt, denen eine beliebige Tumorkonferenz zugeordnet ist.
+
 ### Anonymisierung
 
 Die angegebenen IDs der Patienten als auch ermittelten IDs der Proben werden anonymisiert.
@@ -58,6 +65,8 @@ echo -n "<ID>" | sha256sum | sed -e 's/^\(.\{10\}\).*/WUE_\1/'
 ```
 
 Der Prefix einer anonymisierten ID kann über den Parameter `--id-prefix` verändert werden. Ohne Angabe wird "WUE" verwendet.
+
+Mit der Option `--no-anon` kann die Anonymisierung deaktiviert werden. **IDs von Patiente und proben werden direkt ausgegeben!** 
 
 ### Anzeige von Daten innerhalb der Anwendung
 
