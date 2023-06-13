@@ -30,7 +30,7 @@ Commands:
   preview            Show patient data. Exit Preview-Mode with <CTRL>+'C'
 ```
 
-Zusätzliche Optionen für die Befehle `export-patient` und `export-samples`
+Zusätzliche Optionen für die Befehle `export-patients` und `export-samples`
 
 ```
       --filename=STRING              Exportiere in diese Datei
