@@ -17,7 +17,7 @@ func InitPatients(db *sql.DB) Patients {
 	}
 }
 
-func (patients *Patients) Fetch(patientID string, allTk bool) (*PatientData, error) {
+func (patients *Patients) Fetch(patientID string, tkType string, allTk bool) (*PatientData, error) {
 	query := `SELECT
     	geschlecht,
     	DATE_FORMAT(FROM_DAYS(DATEDIFF(now(),geburtsdatum)), '%Y')+0 AS geburtsdatum,
@@ -63,7 +63,7 @@ func (patients *Patients) Fetch(patientID string, allTk bool) (*PatientData, err
 				result.OsStatus = "LIVING"
 			}
 
-			result.MtbEcogStatus = fetchEcogStatus(patientID)
+			result.MtbEcogStatus = fetchEcogStatus(patientID, tkType)
 
 			result = appendDiagnoseDaten(patientID, result, allTk)
 
@@ -74,17 +74,17 @@ func (patients *Patients) Fetch(patientID string, allTk bool) (*PatientData, err
 }
 
 // Liest den Karnofsky-Grad des Patienten aus und wandelt diesen in ECOG
-func fetchEcogStatus(patientID string) string {
+func fetchEcogStatus(patientID string, tkType string) string {
 	query := `SELECT dutb.karnofsky FROM prozedur pro
 		JOIN patient pat on pro.patient_id = pat.id
     	JOIN dk_ukw_tb_basisdaten dutb on pro.id = dutb.id
     	JOIN dk_tumorkonferenz dt on pro.id = dt.id
-		WHERE dutb.karnofsky IS NOT NULL AND dt.tk = '27' AND pat.patienten_id = ?
+		WHERE dutb.karnofsky IS NOT NULL AND dt.tk = ? AND pat.patienten_id = ?
 		ORDER BY beginndatum DESC LIMIT 1`
 
 	var karnofsky sql.NullString
 
-	if rows, err := db.Query(query, patientID); err == nil {
+	if rows, err := db.Query(query, tkType, patientID); err == nil {
 		for rows.Next() {
 			if err := rows.Scan(&karnofsky); err == nil {
 				if value, err := karnofsky.Value(); err == nil && value != nil {

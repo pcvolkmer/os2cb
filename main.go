@@ -35,6 +35,7 @@ type Globals struct {
 	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs"`
 	IDPrefix  string   `help:"Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben." default:"WUE"`
 	AllTk     bool     `help:"Diagnosen: Erlaube Diagnosen mit allen Tumorkonferenzen, nicht nur Diagnosen mit MTBs"`
+	MtbType   string   `help:"MTB-Typ der Tumorkonferenz in Onkostar. Wenn nicht angegeben, Wert: '27'" default:"27"`
 	NoAnon    bool     `help:"Keine ID-Anonymisierung anwenden. Hierbei wird auch das ID-Prefix ignoriert."`
 }
 
@@ -204,7 +205,7 @@ func FetchAllPatientData(patientIds []string, db *sql.DB) ([]PatientData, error)
 	patients := InitPatients(db)
 	var result []PatientData
 	for _, patientID := range patientIds {
-		if data, err := patients.Fetch(patientID, cli.AllTk); err == nil {
+		if data, err := patients.Fetch(patientID, cli.MtbType, cli.AllTk); err == nil {
 			result = append(result, *data)
 		} else {
 			if !strings.HasPrefix(context.Command(), "display") {
