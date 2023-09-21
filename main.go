@@ -6,6 +6,7 @@ import (
 	"encoding/csv"
 	"encoding/hex"
 	"fmt"
+	"github.com/go-sql-driver/mysql"
 	"io"
 	"log"
 	"strings"
@@ -31,6 +32,7 @@ type Globals struct {
 	Password  string   `short:"P" help:"Database password"`
 	Host      string   `short:"H" help:"Database host" default:"localhost"`
 	Port      int      `help:"Database port" default:"3306"`
+	Ssl       string   `help:"SSL-Verbindung ('true', 'false', 'skip-verify', 'preferred')" default:"false"`
 	Database  string   `short:"D" help:"Database name" default:"onkostar"`
 	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs"`
 	IDPrefix  string   `help:"Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben." default:"WUE"`
@@ -84,7 +86,17 @@ func main() {
 		println()
 	}
 
-	if dbx, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", cli.User, cli.Password, cli.Host, cli.Port, cli.Database)); err == nil {
+	dbCfg := mysql.Config{
+		User:                 cli.User,
+		Passwd:               cli.Password,
+		Net:                  "tcp",
+		Addr:                 fmt.Sprintf("%s:%d", cli.Host, cli.Port),
+		DBName:               cli.Database,
+		AllowNativePasswords: true,
+		TLSConfig:            cli.Ssl,
+	}
+
+	if dbx, err := sql.Open("mysql", dbCfg.FormatDSN()); err == nil {
 		if err := dbx.Ping(); err == nil {
 			db = dbx
 			defer func(db *sql.DB) {

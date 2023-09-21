@@ -18,6 +18,7 @@ Flags:
   -P, --password=STRING              Database password
   -H, --host="localhost"             Database host
       --port=3306                    Database port
+      --ssl="false"                  SSL-Verbindung ('true', 'false', 'skip-verify', 'preferred')
   -D, --database="onkostar"          Database name
       --patient-id=PATIENT-ID,...    PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs
       --id-prefix="WUE"              Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben.
