@@ -6,10 +6,10 @@ TAG = $(strip `git describe --tag 2>/dev/null`)
 
 REV = git.`git rev-parse HEAD | cut -c1-7`
 
-ifeq ($(TAG),)
-	VER := $(TAG)
-else
+ifeq ($(shell echo ${TAG}),)
 	VER := $(REV)
+else
+	VER := $(TAG)
 endif
 
 package-all: win-package linux-package
