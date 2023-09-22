@@ -2,9 +2,15 @@ ifndef VERBOSE
 .SILENT:
 endif
 
-TAG = `git describe --tag 2>/dev/null`
+TAG = $(strip `git describe --tag 2>/dev/null`)
 
-REV = git`git rev-parse HEAD | cut -c1-7`
+REV = git.`git rev-parse HEAD | cut -c1-7`
+
+ifeq ($(TAG),)
+	VER := $(TAG)
+else
+	VER := $(REV)
+endif
 
 package-all: win-package linux-package
 
@@ -14,7 +20,7 @@ win-package: win-binary-x86_64
 	cp target/os2cb.exe os2cb/
 	cp README.md os2cb/
 	cp LICENSE.txt os2cb/
-	zip os2cb-$(TAG)_win64.zip os2cb/*
+	zip os2cb-$(VER)_win64.zip os2cb/* >/dev/null
 	rm -rf os2cb || true
 
 .PHONY: linux-package
@@ -23,7 +29,7 @@ linux-package: linux-binary-x86_64
 	cp target/os2cb os2cb/
 	cp README.md os2cb/
 	cp LICENSE.txt os2cb/
-	tar -czvf os2cb-$(TAG)_linux.tar.gz os2cb/
+	tar -czvf os2cb-$(VER)_linux.tar.gz os2cb/ >/dev/null
 	rm -rf os2cb || true
 
 binary-all: win-binary-x86_64 linux-binary-x86_64
