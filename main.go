@@ -120,6 +120,11 @@ func main() {
 	gocsv.SetCSVWriter(getCsvWriter(cli.ExportPatients.Csv || cli.ExportSamples.Csv))
 	gocsv.SetCSVReader(getCsvReader(cli.ExportPatients.Csv || cli.ExportSamples.Csv))
 
+	if cli.OcaPlus {
+		patients := InitPatients(db)
+		cli.PatientID, _ = patients.FetchOcaPlusPatientIds()
+	}
+
 	switch context.Command() {
 	case "export-patients":
 		handleCommand(cli, db, FetchAllPatientData)
