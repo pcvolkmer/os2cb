@@ -28,21 +28,26 @@ var (
 )
 
 type Globals struct {
-	User      string   `short:"U" help:"Database username" required:""`
-	Password  string   `short:"P" help:"Database password"`
-	Host      string   `short:"H" help:"Database host" default:"localhost"`
-	Port      int      `help:"Database port" default:"3306"`
-	Ssl       string   `help:"SSL-Verbindung ('true', 'false', 'skip-verify', 'preferred')" default:"false"`
-	Database  string   `short:"D" help:"Database name" default:"onkostar"`
-	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs"`
-	IDPrefix  string   `help:"Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben." default:"WUE"`
-	AllTk     bool     `help:"Diagnosen: Erlaube Diagnosen mit allen Tumorkonferenzen, nicht nur Diagnosen mit MTBs"`
-	MtbType   string   `help:"MTB-Typ der Tumorkonferenz in Onkostar. Wenn nicht angegeben, Wert: '27'" default:"27"`
-	NoAnon    bool     `help:"Keine ID-Anonymisierung anwenden. Hierbei wird auch das ID-Prefix ignoriert."`
+	User     string `short:"U" help:"Database username" required:""`
+	Password string `short:"P" help:"Database password"`
+	Host     string `short:"H" help:"Database host" default:"localhost"`
+	Port     int    `help:"Database port" default:"3306"`
+	Ssl      string `help:"SSL-Verbindung ('true', 'false', 'skip-verify', 'preferred')" default:"false"`
+	Database string `short:"D" help:"Database name" default:"onkostar"`
+	IDPrefix string `help:"Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben." default:"WUE"`
+	AllTk    bool   `help:"Diagnosen: Erlaube Diagnosen mit allen Tumorkonferenzen, nicht nur Diagnosen mit MTBs"`
+	MtbType  string `help:"MTB-Typ der Tumorkonferenz in Onkostar. Wenn nicht angegeben, Wert: '27'" default:"27"`
+	NoAnon   bool   `help:"Keine ID-Anonymisierung anwenden. Hierbei wird auch das ID-Prefix ignoriert."`
+}
+
+type PatientSelection struct {
+	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs" group:"Patienten" xor:"PatientID,OcaPlus" required:"true"`
+	OcaPlus   bool     `help:"Alle Patienten mit OCAPlus-Panel" group:"Patienten" xor:"PatientID,OcaPlus" required:"true"`
 }
 
 type CLI struct {
 	Globals
+	PatientSelection
 
 	ExportPatients struct {
 		Filename string `help:"Exportiere in diese Datei" required:""`
