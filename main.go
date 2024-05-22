@@ -230,7 +230,7 @@ func FetchAllPatientData(patientIds []string, db *sql.DB) ([]PatientData, error)
 		if data, err := patients.Fetch(patientID, cli.MtbType, cli.AllTk); err == nil {
 			result = append(result, *data)
 		} else {
-			if !strings.HasPrefix(context.Command(), "display") {
+			if !strings.HasPrefix(context.Command(), "preview") {
 				log.Println(err.Error())
 			}
 		}
@@ -248,7 +248,7 @@ func FetchAllSampleData(patientIds []string, db *sql.DB) ([]SampleData, error) {
 				result = append(result, d)
 			}
 		} else {
-			if !strings.HasPrefix(context.Command(), "display") {
+			if !strings.HasPrefix(context.Command(), "preview") {
 				log.Println(err.Error())
 			}
 		}
