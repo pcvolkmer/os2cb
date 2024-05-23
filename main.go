@@ -103,7 +103,6 @@ func main() {
 
 	if dbx, err := sql.Open("mysql", dbCfg.FormatDSN()); err == nil {
 		if err := dbx.Ping(); err == nil {
-			dbx.SetMaxOpenConns(25)
 			db = dbx
 			defer func(db *sql.DB) {
 				err := db.Close()
