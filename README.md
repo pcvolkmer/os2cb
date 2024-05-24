@@ -31,6 +31,8 @@ Commands:
   preview            Show patient data. Exit Preview-Mode with <CTRL>+'C'
 ```
 
+Als Alternative zu "--patient-id=" kann auch "--oca-plus" angegeben werden, um alle Patienten mit OCAPLus-Panel einzuschließen.
+
 Zusätzliche Optionen für die Befehle `export-patients` und `export-samples`
 
 ```
