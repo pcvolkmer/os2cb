@@ -225,17 +225,14 @@ func preview(db *sql.DB) {
 // Ermittelt alle Patientendaten von allen angegebenen Patienten
 func FetchAllPatientData(patientIds []string, db *sql.DB) ([]PatientData, error) {
 	patients := InitPatients(db)
-	var result []PatientData
-	for _, patientID := range patientIds {
-		if data, err := patients.Fetch(patientID, cli.MtbType, cli.AllTk); err == nil {
-			result = append(result, *data)
-		} else {
-			if !strings.HasPrefix(context.Command(), "preview") {
-				log.Println(err.Error())
-			}
+	if data, err := patients.FetchBy(patientIds, cli.MtbType, cli.AllTk); err == nil {
+		return data, nil
+	} else {
+		if !strings.HasPrefix(context.Command(), "preview") {
+			log.Println(err.Error())
 		}
 	}
-	return result, nil
+	return []PatientData{}, nil
 }
 
 // Ermittelt alle Probendaten von allen angegebenen Patienten

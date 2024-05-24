@@ -40,83 +40,86 @@ func (patients *Patients) FetchOcaPlusPatientIds() ([]string, error) {
 	return patientenIds, nil
 }
 
-func (patients *Patients) Fetch(patientID string, tkType string, allTk bool) (*PatientData, error) {
-	query := `SELECT
-    	geschlecht,
-    	DATE_FORMAT(FROM_DAYS(DATEDIFF(now(),geburtsdatum)), '%Y')+0 AS geburtsdatum,
-    	sterbedatum
-		FROM patient WHERE patienten_id = ?`
+func (patients *Patients) FetchBy(patientIDs []string, tkType string, allTk bool) ([]PatientData, error) {
+	query := `SELECT DISTINCT
+	   patient.patienten_id,
+	   geschlecht,
+	   DATE_FORMAT(FROM_DAYS(DATEDIFF(now(),geburtsdatum)), '%Y')+0 AS geburtsdatum,
+	   sterbedatum,
+	   ki.karnofsky
+	   FROM patient
+	   -- karnofsky
+		  LEFT OUTER JOIN (
+				SELECT patienten_id, karnofsky, MAX(p.beginndatum) FROM dk_ukw_tb_basisdaten dutb
+					  JOIN dk_tumorkonferenz dt ON (dutb.id = dt.id AND dt.tk = ?)
+					  JOIN prozedur p ON (p.id = dutb.id)
+					  JOIN patient pat ON (pat.id = p.patient_id)
+					  WHERE dutb.karnofsky IS NOT NULL
+					  GROUP BY patienten_id
+					  ORDER BY patienten_id
+		  ) ki ON (ki.patienten_id = patient.patienten_id)
+		  WHERE patient.patienten_id IN ('` + strings.Join(patientIDs, "','") + "') ORDER BY patient.patienten_id;"
 
-	if row := db.QueryRow(query, patientID); row != nil {
+	var results = []PatientData{}
+
+	if rows, err := db.Query(query, tkType); err == nil {
+		var patientenId sql.NullString
 		var sex sql.NullString
 		var geburtsdatum sql.NullInt16
 		var sterbedatum sql.NullString
+		var karnofsky sql.NullString
 
-		if err := row.Scan(&sex, &geburtsdatum, &sterbedatum); err == nil {
-			result := &PatientData{
-				ID: AnonymizedID(patientID),
-			}
-
-			// GENDER + SEX
-			if sex, err := sex.Value(); err == nil && sex != nil {
-				if sex == "m" {
-					result.Sex = "Male"
-				} else if sex == "w" {
-					result.Sex = "Female"
-				}
-
-				if sex == "m" {
-					result.Gender = "Male"
-				} else if sex == "w" {
-					result.Gender = "Female"
-				}
-				// Others - Code?
-			}
-
-			// AGE
-			if geburtsdatum, err := geburtsdatum.Value(); err == nil && geburtsdatum != nil {
-				result.Age = fmt.Sprint(geburtsdatum)
-			}
-
-			// OS_STATUS
-			// OS_MONTHS applied using appendDiagnoseDaten()
-			if sterbedatum, err := sterbedatum.Value(); err == nil && sterbedatum != nil {
-				result.OsStatus = "DECEASED"
-			} else {
-				result.OsStatus = "LIVING"
-			}
-
-			result.MtbEcogStatus = fetchEcogStatus(patientID, tkType)
-
-			result = appendDiagnoseDaten(patientID, result, allTk)
-
-			return result, nil
-		}
-	}
-	return nil, fmt.Errorf("keine Daten zu Patient mit ID '%s'", patientID)
-}
-
-// Liest den Karnofsky-Grad des Patienten aus und wandelt diesen in ECOG
-func fetchEcogStatus(patientID string, tkType string) string {
-	query := `SELECT dutb.karnofsky FROM prozedur pro
-		JOIN patient pat on pro.patient_id = pat.id
-    	JOIN dk_ukw_tb_basisdaten dutb on pro.id = dutb.id
-    	JOIN dk_tumorkonferenz dt on pro.id = dt.id
-		WHERE dutb.karnofsky IS NOT NULL AND dt.tk = ? AND pat.patienten_id = ?
-		ORDER BY beginndatum DESC LIMIT 1`
-
-	var karnofsky sql.NullString
-
-	if rows, err := db.Query(query, tkType, patientID); err == nil {
 		for rows.Next() {
-			if err := rows.Scan(&karnofsky); err == nil {
-				if value, err := karnofsky.Value(); err == nil && value != nil {
-					return karnofskyToEcog(fmt.Sprint(value))
+			if err := rows.Scan(&patientenId, &sex, &geburtsdatum, &sterbedatum, &karnofsky); err == nil {
+				result := &PatientData{
+					ID: AnonymizedID(patientenId.String),
 				}
+
+				// GENDER + SEX
+				if sex, err := sex.Value(); err == nil && sex != nil {
+					if sex == "m" {
+						result.Sex = "Male"
+					} else if sex == "w" {
+						result.Sex = "Female"
+					}
+
+					if sex == "m" {
+						result.Gender = "Male"
+					} else if sex == "w" {
+						result.Gender = "Female"
+					}
+					// Others - Code?
+				}
+
+				// AGE
+				if geburtsdatum, err := geburtsdatum.Value(); err == nil && geburtsdatum != nil {
+					result.Age = fmt.Sprint(geburtsdatum)
+				}
+
+				// OS_STATUS
+				// OS_MONTHS applied using appendDiagnoseDaten()
+				if sterbedatum, err := sterbedatum.Value(); err == nil && sterbedatum != nil {
+					result.OsStatus = "DECEASED"
+				} else {
+					result.OsStatus = "LIVING"
+				}
+
+				if val, err := karnofsky.Value(); err == nil && val != nil {
+					result.MtbEcogStatus = karnofskyToEcog(fmt.Sprintf("%s", val))
+				} else {
+					result.MtbEcogStatus = "NA"
+				}
+
+				result = appendDiagnoseDaten(patientenId.String, result, allTk)
+
+				results = append(results, *result)
 			}
 		}
+
+		return results, nil
 	}
-	return "NA"
+
+	return nil, fmt.Errorf("keine Daten zu Patienten gefunden")
 }
 
 // Ermittelt den ECOG anhand des Karnofsky-Grads
