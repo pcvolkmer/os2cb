@@ -53,7 +53,7 @@ Es handelt sich daher **nicht** um eine CSV-Datei nach [RFC 4180](https://www.rf
 ### Hinweis zu Diagnosen
 
 Generell verwendet die Anwendung nur Diagnosen, denen ein MTB (Tumorkonferenz mit Typ "27") zugeordnet ist.
-Der Standardwert kann - bei Bedarf entsprechend der lokale OS-Installation - auch mit dem Parameter `--mtb-type`
+Der Standardwert kann - bei Bedarf entsprechend der lokalen Onkostar-Installation - auch mit dem Parameter `--mtb-type`
 überschrieben werden.
 Mit der Option `--all-tk` werden alle Diagnosen berücksichtigt, denen eine beliebige Tumorkonferenz zugeordnet ist.
 
@@ -71,7 +71,8 @@ echo -n "<ID>" | sha256sum | sed -e 's/^\(.\{10\}\).*/WUE_\1/'
 
 Der Prefix einer anonymisierten ID kann über den Parameter `--id-prefix` verändert werden. Ohne Angabe wird "WUE" verwendet.
 
-Mit der Option `--no-anon` kann die Anonymisierung deaktiviert werden. **IDs von Patiente und proben werden direkt ausgegeben!**
+Mit der Option `--no-anon` kann die Anonymisierung deaktiviert werden. 
+**Achtung: IDs von Patienten und Proben werden direkt ausgegeben!**
 
 ### Anzeige von Daten innerhalb der Anwendung
 
