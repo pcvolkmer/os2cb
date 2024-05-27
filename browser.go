@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
@@ -27,9 +28,10 @@ const (
 )
 
 type Browser struct {
-	db          *sql.DB
-	browserType BrowserType
-	patientIds  []string
+	db             *sql.DB
+	browserType    BrowserType
+	patientIds     []string
+	checkSampleIds bool
 
 	app        *tview.Application
 	grid       *tview.Grid
@@ -38,16 +40,17 @@ type Browser struct {
 	table      *tview.Table
 }
 
-func NewBrowser(patientIds []string, db *sql.DB) *Browser {
+func NewBrowser(patientIds []string, checkSampleIds bool, db *sql.DB) *Browser {
 	var inputField *tview.InputField
 	var dropDown *tview.DropDown
 
 	browser := &Browser{
-		db:          db,
-		browserType: Patient,
-		patientIds:  patientIds,
-		app:         tview.NewApplication(),
-		grid:        tview.NewGrid().SetRows(2, 2, 0, 1),
+		db:             db,
+		browserType:    Patient,
+		patientIds:     patientIds,
+		checkSampleIds: checkSampleIds,
+		app:            tview.NewApplication(),
+		grid:           tview.NewGrid().SetRows(2, 2, 0, 1),
 	}
 
 	inputField = tview.NewInputField().
@@ -307,8 +310,20 @@ func (browser *Browser) createSampleTable(patientIds []string) (*tview.Table, er
 		}
 
 		for idx, item := range data {
+			sampleRegExp, err := regexp.Compile("^[A-Z]/[0-9]{4}/[0-9]+$")
+
 			table.SetCellSimple(idx+1, 0, item.PatientID)
-			table.SetCellSimple(idx+1, 1, item.SampleID)
+			if err == nil && browser.checkSampleIds {
+				if !sampleRegExp.MatchString(item.SampleID) {
+					tableCell := tview.NewTableCell(item.SampleID).SetTextColor(tcell.ColorRed)
+					table.SetCell(idx+1, 1, tableCell)
+				} else {
+					tableCell := tview.NewTableCell(item.SampleID).SetTextColor(tcell.ColorGreen)
+					table.SetCell(idx+1, 1, tableCell)
+				}
+			} else {
+				table.SetCellSimple(idx+1, 1, item.SampleID)
+			}
 			table.SetCellSimple(idx+1, 2, item.SampleLocRefPrimarus)
 			table.SetCellSimple(idx+1, 3, item.SampleMethod)
 			table.SetCellSimple(idx+1, 4, item.SampleLocation)

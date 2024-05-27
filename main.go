@@ -219,7 +219,7 @@ func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc f
 }
 
 func preview(db *sql.DB) {
-	NewBrowser(cli.PatientID, db).Show()
+	NewBrowser(cli.PatientID, cli.NoAnon, db).Show()
 }
 
 // Ermittelt alle Patientendaten von allen angegebenen Patienten
