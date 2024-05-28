@@ -70,7 +70,7 @@ func fetchSamplesForDisease(patientID string, diseaseID string) ([]SampleData, e
 		JOIN erkrankung_prozedur ep on prozedur.id = ep.prozedur_id
 		LEFT JOIN property_catalogue_version_entry pcve ON pcve.code = icdo3lokalisation AND pcve.property_version_id = icdo3lokalisation_propcat_version
 		LEFT JOIN property_catalogue_version_entry pcve2 ON pcve2.code = panel AND pcve2.property_version_id = panel_propcat_version
-		WHERE ep.erkrankung_id = ?
+		WHERE prozedur.geloescht = 0 AND ep.erkrankung_id = ? 
 		ORDER BY beginndatum DESC`
 
 	if rows, err := db.Query(query, diseaseID); err == nil {
