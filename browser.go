@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 	"regexp"
@@ -213,7 +214,7 @@ func (browser *Browser) createPatientTable(patientIds []string) (*tview.Table, e
 		table := tview.NewTable()
 		table.SetBorder(true)
 		table.SetBorders(true)
-		table.SetTitle("Patienten-Daten")
+		table.SetTitle(fmt.Sprintf("Patienten-Daten - %d Einträge", len(data)))
 
 		headline := []string{
 			"PATIENT_ID",
@@ -274,7 +275,7 @@ func (browser *Browser) createSampleTable(patientIds []string) (*tview.Table, er
 		table := tview.NewTable()
 		table.SetBorder(true)
 		table.SetBorders(true)
-		table.SetTitle("Sample-Daten")
+		table.SetTitle(fmt.Sprintf("Sample-Daten - %d Einträge", len(data)))
 
 		headline := []string{
 			"PATIENT_ID",
