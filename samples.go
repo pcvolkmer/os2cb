@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -120,7 +121,7 @@ func fetchSamplesForDisease(patientID string, diseaseID string, ocaPlusOnly bool
 				// SAMPLE_ID
 				if einsendenummer, err := einsendenummer.Value(); err == nil && einsendenummer != nil {
 					data.PatientID = anonymizedPatientID
-					data.SampleID = AnonymizedID(fmt.Sprint(einsendenummer))
+					data.SampleID = AnonymizedID(sanitizeSampleId(fmt.Sprint(einsendenummer)))
 				} else {
 					continue
 				}
@@ -348,6 +349,20 @@ func tmb(prozedurID string, sampleData *SampleData) *SampleData {
 	}
 
 	return sampleData
+}
+
+func sanitizeSampleId(id string) string {
+	re := regexp.MustCompile("(?P<Letter>[A-Z])/[0-9]{2}(?P<Year2>[0-9]{2})/(?P<LfdNr>[0-9]+)")
+	if re.MatchString(id) {
+		matches := re.FindStringSubmatch(id)
+		return fmt.Sprintf(
+			"%s%s-%s",
+			matches[re.SubexpIndex("Letter")],
+			matches[re.SubexpIndex("LfdNr")],
+			matches[re.SubexpIndex("Year2")],
+		)
+	}
+	return id
 }
 
 type SampleData struct {
