@@ -284,17 +284,14 @@ func immunhisto(prozedurID string, sampleData *SampleData) *SampleData {
 	return sampleData
 }
 
-// Schreibt die Werte TPS_PANEL, MSI_PCR und MSI_IG in bestehende Probendaten und gibt diese dann wieder zurück.
+// Schreibt die Werte MSI in bestehende Probendaten und gibt diese dann wieder zurück.
 func msi(prozedurID string, sampleData *SampleData) *SampleData {
-	query := `SELECT pcrergebnis, ergebnismsi, feldwert FROM prozedur_prozedur pp
+	query := `SELECT seqprozentwert FROM prozedur_prozedur pp
 		JOIN dk_molekulargenetik ON pp.prozedur1 = dk_molekulargenetik.id
 		JOIN dk_molekluargenmsi ON pp.prozedur2 = dk_molekluargenmsi.id
-		JOIN dk_molekluargenmsi_merkmale mm ON mm.eintrag_id = prozedur2
-		WHERE pp.prozedur1 = ?`
+		WHERE pp.prozedur1 = ? AND komplexerbiomarker = 'MSI'`
 
-	var pcrergebnis sql.NullString
-	var ergebnisMsi sql.NullString
-	var feldwert sql.NullString
+	var prozentwert sql.NullString
 
 	// Initial values
 	sampleData.MsiPanel = "NA"
@@ -303,26 +300,9 @@ func msi(prozedurID string, sampleData *SampleData) *SampleData {
 
 	if rows, err := db.Query(query, prozedurID); err == nil {
 		for rows.Next() {
-			if err := rows.Scan(&pcrergebnis, &ergebnisMsi, &feldwert); err == nil {
-				if feldwert, err := feldwert.Value(); err == nil && feldwert != nil {
-					if ergebnisMsi, err := ergebnisMsi.Value(); err == nil && ergebnisMsi != nil {
-						if feldwert == "S" {
-							// TPS_PANEL
-							sampleData.MsiPanel = fmt.Sprint(ergebnisMsi)
-						} else if feldwert == "P" {
-							// MSI_PCR
-							// sampleData.MsiPcr = fmt.Sprint(ergebnisMsi)
-						} else if feldwert == "I" {
-							// MSI_IG
-							sampleData.MsiIg = fmt.Sprint(ergebnisMsi)
-						}
-					}
-
-					// OS.Molekulargenetik ab Rev 54
-					// In OS 2.11.1.6 mit Bib-Vesion 6.6 (Rev 81) nicht mehr in Formular verfügbar
-					if pcrergebnis, err := pcrergebnis.Value(); err == nil && pcrergebnis != nil {
-						sampleData.MsiPcr = fmt.Sprint(pcrergebnis)
-					}
+			if err := rows.Scan(&prozentwert); err == nil {
+				if prozentwert, err := prozentwert.Value(); err == nil && prozentwert != nil {
+					sampleData.MsiPanel = fmt.Sprint(prozentwert)
 				}
 			}
 		}
