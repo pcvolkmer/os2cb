@@ -9,12 +9,14 @@ import (
 )
 
 type Samples struct {
-	db *sql.DB
+	db          *sql.DB
+	ocaPlusOnly bool
 }
 
-func InitSamples(db *sql.DB) Samples {
+func InitSamples(db *sql.DB, ocaPlusOnly bool) Samples {
 	return Samples{
-		db: db,
+		db:          db,
+		ocaPlusOnly: ocaPlusOnly,
 	}
 }
 
@@ -40,7 +42,7 @@ func (samples *Samples) Fetch(patientID string) ([]SampleData, error) {
 
 		for rows.Next() {
 			if err := rows.Scan(&erkrankungID); err == nil {
-				if samplesForDisease, err := fetchSamplesForDisease(patientID, erkrankungID); err == nil {
+				if samplesForDisease, err := fetchSamplesForDisease(patientID, erkrankungID, samples.ocaPlusOnly); err == nil {
 					result = append(result, samplesForDisease...)
 				}
 			}
@@ -50,7 +52,7 @@ func (samples *Samples) Fetch(patientID string) ([]SampleData, error) {
 	return nil, errors.New("fetch: No data found")
 }
 
-func fetchSamplesForDisease(patientID string, diseaseID string) ([]SampleData, error) {
+func fetchSamplesForDisease(patientID string, diseaseID string, ocaPlusOnly bool) ([]SampleData, error) {
 
 	query := `SELECT
     	dm.id,
@@ -70,7 +72,7 @@ func fetchSamplesForDisease(patientID string, diseaseID string) ([]SampleData, e
 		JOIN erkrankung_prozedur ep on prozedur.id = ep.prozedur_id
 		LEFT JOIN property_catalogue_version_entry pcve ON pcve.code = icdo3lokalisation AND pcve.property_version_id = icdo3lokalisation_propcat_version
 		LEFT JOIN property_catalogue_version_entry pcve2 ON pcve2.code = panel AND pcve2.property_version_id = panel_propcat_version
-		WHERE prozedur.geloescht = 0 AND ep.erkrankung_id = ? 
+		WHERE prozedur.geloescht = 0 AND ep.erkrankung_id = ?
 		ORDER BY beginndatum DESC`
 
 	if rows, err := db.Query(query, diseaseID); err == nil {
@@ -109,6 +111,11 @@ func fetchSamplesForDisease(patientID string, diseaseID string) ([]SampleData, e
 				&panelCode,
 				&panel,
 			); err == nil {
+
+				// PANEL_CODE
+				if panelCode, err := panelCode.Value(); err == nil && (panelCode != "OCAPlus" || !ocaPlusOnly) {
+					continue
+				}
 
 				// SAMPLE_ID
 				if einsendenummer, err := einsendenummer.Value(); err == nil && einsendenummer != nil {

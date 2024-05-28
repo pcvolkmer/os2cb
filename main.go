@@ -43,6 +43,7 @@ type Globals struct {
 type PatientSelection struct {
 	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs" group:"Patienten" xor:"PatientID,OcaPlus" required:"true"`
 	OcaPlus   bool     `help:"Alle Patienten mit OCAPlus-Panel" group:"Patienten" xor:"PatientID,OcaPlus" required:"true"`
+	PersStamm int      `help:"ID des Personenstamms" group:"Patienten" default:"4"`
 }
 
 type CLI struct {
@@ -237,7 +238,7 @@ func FetchAllPatientData(patientIds []string, db *sql.DB) ([]PatientData, error)
 
 // Ermittelt alle Probendaten von allen angegebenen Patienten
 func FetchAllSampleData(patientIds []string, db *sql.DB) ([]SampleData, error) {
-	samples := InitSamples(db)
+	samples := InitSamples(db, cli.OcaPlus)
 	var result []SampleData
 	for _, patientID := range patientIds {
 		if data, err := samples.Fetch(patientID); err == nil {
