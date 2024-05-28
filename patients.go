@@ -21,7 +21,7 @@ func (patients *Patients) FetchOcaPlusPatientIds() ([]string, error) {
 	query := `SELECT DISTINCT patienten_id FROM dk_molekulargenetik 
 		JOIN prozedur ON (prozedur.id = dk_molekulargenetik.id)
 		JOIN patient ON (patient.id = prozedur.patient_id)
-		WHERE panel = 'OCAPlus' AND procedur.geloescht = 0
+		WHERE panel = 'OCAPlus' AND prozedur.geloescht = 0
 		ORDER BY patienten_id;`
 
 	var patientenIds []string
@@ -54,7 +54,7 @@ func (patients *Patients) FetchBy(patientIDs []string, tkType string, allTk bool
 					  JOIN dk_tumorkonferenz dt ON (dutb.id = dt.id AND dt.tk = ?)
 					  JOIN prozedur p ON (p.id = dutb.id)
 					  JOIN patient pat ON (pat.id = p.patient_id)
-					  WHERE dutb.karnofsky IS NOT NULL AND p = 0
+					  WHERE dutb.karnofsky IS NOT NULL AND p.geloescht = 0
 					  GROUP BY patienten_id
 					  ORDER BY patienten_id
 		  ) ki ON (ki.patienten_id = patient.patienten_id)
