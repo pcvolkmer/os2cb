@@ -6,19 +6,20 @@ import (
 	"encoding/csv"
 	"encoding/hex"
 	"fmt"
+	"github.com/alecthomas/kong"
 	"github.com/go-sql-driver/mysql"
+	"github.com/gocarina/gocsv"
+	"golang.org/x/term"
+	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 	"io"
 	"log"
 	"strings"
 	"syscall"
-	_ "syscall"
 
-	"github.com/alecthomas/kong"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gocarina/gocsv"
-	"golang.org/x/term"
-	"golang.org/x/text/encoding/unicode"
-	"golang.org/x/text/transform"
+	_ "syscall"
 )
 
 var (
@@ -163,7 +164,8 @@ func getCsvWriter(isCsv bool) func(out io.Writer) *gocsv.SafeCSVWriter {
 			writer = csv.NewWriter(transformWriter)
 			writer.Comma = ';'
 		} else {
-			writer = csv.NewWriter(out)
+			transformWriter := transform.NewWriter(out, charmap.ISO8859_1.NewEncoder())
+			writer = csv.NewWriter(transformWriter)
 			writer.Comma = '\t'
 		}
 		return gocsv.NewSafeCSVWriter(writer)
