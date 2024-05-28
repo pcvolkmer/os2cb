@@ -45,6 +45,11 @@ Zusätzliche Optionen für die Befehle `export-patients` und `export-samples`
 
 Wird das Passwort nicht als Parameter angegeben, so wird im Anschluss danach gefragt.
 
+### Hinweis zum Export der Export-Dateien
+
+Die Dateien werden als TSV-Datei (durch Tabulator getrennt) und ISO-5589-1 kodiert gespeichert, damit ein Datenimport mit
+cBioportal ohne Umlautprobleme erfolgen kann.
+
 ### Hinweis zum Export im CSV-Format
 
 Für den Export im CSV-Format wird zur Kompatibilität mit MS Excel der UTF-16 Zeichensatz verwendet. Das Trennzeichen ist dabei `;`.
@@ -56,6 +61,10 @@ Generell verwendet die Anwendung nur Diagnosen, denen ein MTB (Tumorkonferenz mi
 Der Standardwert kann - bei Bedarf entsprechend der lokalen Onkostar-Installation - auch mit dem Parameter `--mtb-type`
 überschrieben werden.
 Mit der Option `--all-tk` werden alle Diagnosen berücksichtigt, denen eine beliebige Tumorkonferenz zugeordnet ist.
+
+### Hinweise zu Proben-IDs
+
+Proben-IDs aus Würzburg werden in der Form `A/2024/1234` dokumentiert und von der Anwendung in das Format `A24-1234` gewandelt. 
 
 ### Anonymisierung
 
