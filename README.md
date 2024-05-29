@@ -47,7 +47,7 @@ Wird das Passwort nicht als Parameter angegeben, so wird im Anschluss danach gef
 
 ### Hinweis zum Export der Export-Dateien
 
-Die Dateien werden als TSV-Datei (durch Tabulator getrennt) und ISO-5589-1 kodiert gespeichert, damit ein Datenimport mit
+Die Dateien werden als TSV-Datei (durch Tabulator getrennt) und UTF-8 kodiert gespeichert, damit ein Datenimport mit
 cBioportal ohne Umlautprobleme erfolgen kann.
 
 ### Hinweis zum Export im CSV-Format
