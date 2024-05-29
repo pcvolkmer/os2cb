@@ -236,6 +236,8 @@ func (browser *Browser) createPatientTable(patientIds []string) (*tview.Table, e
 			"PREATHERAPY_PFS",
 			"OS_STATUS",
 			"OS_MONTHS",
+			"DFS_STATUS",
+			"DFS_MONTHS",
 		}
 
 		for idx, item := range headline {
@@ -262,6 +264,8 @@ func (browser *Browser) createPatientTable(patientIds []string) (*tview.Table, e
 			table.SetCellSimple(idx+1, 16, item.PretherapyPfs)
 			table.SetCellSimple(idx+1, 17, item.OsStatus)
 			table.SetCellSimple(idx+1, 18, item.OsMonths)
+			table.SetCellSimple(idx+1, 19, item.DfsStatus)
+			table.SetCellSimple(idx+1, 20, item.DfsMonths)
 		}
 
 		return table, nil

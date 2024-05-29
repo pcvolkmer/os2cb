@@ -112,6 +112,10 @@ func (patients *Patients) FetchBy(patientIDs []string, tkType string, allTk bool
 
 				result = appendDiagnoseDaten(patientenId.String, result, allTk)
 
+				// DFS
+				result.DfsStatus = "NA"
+				result.DfsMonths = "NA"
+
 				results = append(results, *result)
 			}
 		}
@@ -264,4 +268,6 @@ type PatientData struct {
 	PretherapyPfs            string `csv:"PREATHERAPY_PFS"`
 	OsStatus                 string `csv:"OS_STATUS"`
 	OsMonths                 string `csv:"OS_MONTHS"`
+	DfsStatus                string `csv:"DFS_STATUS"`
+	DfsMonths                string `csv:"DFS_MONTHS"`
 }
