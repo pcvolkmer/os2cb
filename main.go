@@ -10,7 +10,6 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/gocarina/gocsv"
 	"golang.org/x/term"
-	"golang.org/x/text/encoding/charmap"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
 	"io"
@@ -164,8 +163,7 @@ func getCsvWriter(isCsv bool) func(out io.Writer) *gocsv.SafeCSVWriter {
 			writer = csv.NewWriter(transformWriter)
 			writer.Comma = ';'
 		} else {
-			transformWriter := transform.NewWriter(out, charmap.ISO8859_1.NewEncoder())
-			writer = csv.NewWriter(transformWriter)
+			writer = csv.NewWriter(out)
 			writer.Comma = '\t'
 		}
 		return gocsv.NewSafeCSVWriter(writer)
