@@ -7,7 +7,7 @@ require (
 	github.com/gdamore/tcell/v2 v2.7.4
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/gocarina/gocsv v0.0.0-20240520201108-78e41c74b4b1
-	github.com/rivo/tview v0.0.0-20240519200218-0ac5f73025a8
+	github.com/rivo/tview v0.0.0-20240524063012-037df494fb76
 	golang.org/x/term v0.20.0
 	golang.org/x/text v0.15.0
 )
