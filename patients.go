@@ -7,6 +7,17 @@ import (
 	"strings"
 )
 
+func sanitizeUmlaute(s string) string {
+	s = strings.ReplaceAll(s, "Ä", "Ae")
+	s = strings.ReplaceAll(s, "Ö", "Oe")
+	s = strings.ReplaceAll(s, "Ü", "Ue")
+	s = strings.ReplaceAll(s, "ä", "ae")
+	s = strings.ReplaceAll(s, "ö", "oe")
+	s = strings.ReplaceAll(s, "ü", "ue")
+	s = strings.ReplaceAll(s, "ß", "ss")
+	return s
+}
+
 type Patients struct {
 	db *sql.DB
 }
@@ -204,7 +215,7 @@ func appendDiagnoseDaten(patientID string, data *PatientData, allTk bool) *Patie
 
 			// DIAGNOSIS
 			if diagnose, err := diagnose.Value(); err == nil && diagnose != nil {
-				data.Diagnosis = fmt.Sprint(diagnose)
+				data.Diagnosis = sanitizeUmlaute(fmt.Sprint(diagnose))
 			}
 
 			// ONKOTREE_CODE

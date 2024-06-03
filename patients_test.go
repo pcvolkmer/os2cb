@@ -111,3 +111,12 @@ func TestShouldReturnEcogForKarnofsky0(t *testing.T) {
 		t.Fail()
 	}
 }
+
+func TestShouldSanitizeUmlaute(t *testing.T) {
+	actual := sanitizeUmlaute("Bösartige Neubildung")
+	expected := "Boesartige Neubildung"
+	if actual != expected {
+		t.Logf("wrong value: Expected %s, got %s", expected, actual)
+		t.Fail()
+	}
+}
