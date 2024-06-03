@@ -86,7 +86,7 @@ func main() {
 
 	if len(cli.Password) == 0 {
 		fmt.Print("Passwort: ")
-		if bytePw, err := term.ReadPassword(int(syscall.Stdin)); err == nil {
+		if bytePw, err := term.ReadPassword(syscall.Stdin); err == nil {
 			cli.Password = string(bytePw)
 		}
 		println()
