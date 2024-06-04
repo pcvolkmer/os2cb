@@ -135,8 +135,10 @@ func main() {
 		handleCommand(cli, db, FetchAllPatientData)
 	case "export-samples":
 		handleCommand(cli, db, FetchAllSampleData)
+	case "export-xlsx":
+		exportXlsx(cli, cli.PatientID, db)
 	case "export-xls":
-		exportXls(cli, cli.PatientID, db)
+		exportXlsx(cli, cli.PatientID, db)
 	case "preview":
 		preview(db)
 	default:
@@ -223,7 +225,12 @@ func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc f
 	}
 }
 
-func exportXls(cli *CLI, patientIds []string, db *sql.DB) {
+func exportXlsx(cli *CLI, patientIds []string, db *sql.DB) {
+	if !strings.HasSuffix(cli.ExportXlsx.Filename, ".xlsx") {
+		log.Fatalf("Cannot use filename: '%s'. Required filename suffix is '.xlsx'", cli.ExportXlsx.Filename)
+		return
+	}
+
 	patientsData := []PatientData{}
 	samplesData := []SampleData{}
 	if data, err := FetchAllPatientData(patientIds, db); err == nil {
