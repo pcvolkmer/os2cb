@@ -235,12 +235,18 @@ func exportXlsx(cli *CLI, patientIds []string, db *sql.DB) {
 	samplesData := []SampleData{}
 	if data, err := FetchAllPatientData(patientIds, db); err == nil {
 		patientsData = data
+	} else {
+		log.Printf(err.Error())
 	}
 	if data, err := FetchAllSampleData(patientIds, db); err == nil {
 		samplesData = data
+	} else {
+		log.Printf(err.Error())
 	}
 
-	_ = WriteXlsxFile(cli.ExportXlsx.Filename, patientsData, samplesData)
+	if err := WriteXlsxFile(cli.ExportXlsx.Filename, patientsData, samplesData); err != nil {
+		log.Fatalln(err.Error())
+	}
 }
 
 func preview(db *sql.DB) {
