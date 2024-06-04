@@ -62,9 +62,9 @@ type CLI struct {
 		Csv      bool   `help:"Verwende CSV-Format anstelle TSV-Format. Trennung mit ';' für MS Excel" default:"false"`
 	} `cmd:"" help:"Export sample data"`
 
-	ExportXls struct {
+	ExportXlsx struct {
 		Filename string `help:"Exportiere in diese Datei" required:""`
-	} `cmd:"" help:"Export all into Excel-File"`
+	} `aliases:"export-xls" cmd:"" help:"Export all into Excel-File"`
 
 	Preview struct {
 	} `cmd:"" help:"Show patient data. Exit Preview-Mode with <CTRL>+'C'"`
@@ -233,7 +233,7 @@ func exportXls(cli *CLI, patientIds []string, db *sql.DB) {
 		samplesData = data
 	}
 
-	_ = WriteXlsxFile(cli.ExportXls.Filename, patientsData, samplesData)
+	_ = WriteXlsxFile(cli.ExportXlsx.Filename, patientsData, samplesData)
 }
 
 func preview(db *sql.DB) {
