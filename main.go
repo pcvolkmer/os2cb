@@ -62,6 +62,10 @@ type CLI struct {
 		Csv      bool   `help:"Verwende CSV-Format anstelle TSV-Format. Trennung mit ';' für MS Excel" default:"false"`
 	} `cmd:"" help:"Export sample data"`
 
+	ExportXls struct {
+		Filename string `help:"Exportiere in diese Datei" required:""`
+	} `cmd:"" help:"Export all into Excel-File"`
+
 	Preview struct {
 	} `cmd:"" help:"Show patient data. Exit Preview-Mode with <CTRL>+'C'"`
 }
@@ -131,12 +135,12 @@ func main() {
 		handleCommand(cli, db, FetchAllPatientData)
 	case "export-samples":
 		handleCommand(cli, db, FetchAllSampleData)
+	case "export-xls":
+		exportXls(cli, cli.PatientID, db)
 	case "preview":
 		preview(db)
 	default:
-
 	}
-
 }
 
 func AnonymizedID(id string) string {
@@ -217,6 +221,19 @@ func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc f
 	if err := WriteFile(filename, result); err != nil {
 		log.Fatalln(err.Error())
 	}
+}
+
+func exportXls(cli *CLI, patientIds []string, db *sql.DB) {
+	patientsData := []PatientData{}
+	samplesData := []SampleData{}
+	if data, err := FetchAllPatientData(patientIds, db); err == nil {
+		patientsData = data
+	}
+	if data, err := FetchAllSampleData(patientIds, db); err == nil {
+		samplesData = data
+	}
+
+	_ = WriteXlsxFile(cli.ExportXls.Filename, patientsData, samplesData)
 }
 
 func preview(db *sql.DB) {

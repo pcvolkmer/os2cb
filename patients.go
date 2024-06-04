@@ -282,3 +282,54 @@ type PatientData struct {
 	DfsStatus                string `csv:"DFS_STATUS"`
 	DfsMonths                string `csv:"DFS_MONTHS"`
 }
+
+func PatientDataHeaders() []string {
+	return []string{"PATIENT_ID",
+		"GENDER",
+		"SEX",
+		"AGE",
+		"ICD_O3_MORPH_CODE",
+		"DIAGNOSIS",
+		"ONCOTREE_CODE",
+		"ICD_10_CODE",
+		"SPREAD_OF_DISEASE",
+		"MTB_ECOG_STATUS",
+		"PAST_MALIGNANT_DISEASE",
+		"PREATHERAPY_PROGRESS",
+		"NUM_SYSTEMIC_PRETHERAPY",
+		"PREATHERAPY_MEDICATION",
+		"PREATHERAPY_MEDICATION_NCIT",
+		"PREATHERAPY_BEST_RESPONSE",
+		"PREATHERAPY_PFS",
+		"OS_STATUS",
+		"OS_MONTHS",
+		"DFS_STATUS",
+		"DFS_MONTHS",
+	}
+}
+
+func (data *PatientData) AsStringArray() []string {
+	return []string{
+		data.ID,
+		data.Gender,
+		data.Sex,
+		data.Age,
+		data.IcdO3MorphCode,
+		data.Diagnosis,
+		data.OncotreeCode,
+		data.Icd10Code,
+		data.SpreadOfDisease,
+		data.MtbEcogStatus,
+		data.PastMalignantDisease,
+		data.PretherapyProgress,
+		data.NumSystemicPretherapy,
+		data.PretherapyMedication,
+		data.PretherapyMedicationNcit,
+		data.PretherapyBestResponse,
+		data.PretherapyPfs,
+		data.OsStatus,
+		data.OsMonths,
+		data.DfsStatus,
+		data.DfsMonths,
+	}
+}

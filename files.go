@@ -3,11 +3,13 @@ package main
 import (
 	_ "embed"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"reflect"
 
 	"github.com/gocarina/gocsv"
+	"github.com/xuri/excelize/v2"
 )
 
 //go:embed resources/prefix-data_clinical_patient.txt
@@ -55,6 +57,65 @@ func WriteFile[D PatientData | SampleData](filename string, data []D) error {
 		}
 	} else {
 		return errors.New("file: Fehler beim Erstellen der Ausgabedaten")
+	}
+
+	return nil
+}
+
+// Schreibt Daten in Xlsx Datei
+func WriteXlsxFile(filename string, patientData []PatientData, sampleData []SampleData) error {
+	file := excelize.NewFile()
+	defer func() {
+		if err := file.Close(); err != nil {
+			return
+		}
+	}()
+
+	_ = file.DeleteSheet("Sheet1")
+	patientsIndex, _ := file.NewSheet("Patients Data")
+	samplesIndex, _ := file.NewSheet("Samples Data")
+
+	_ = addPatientData(file, patientsIndex, patientData)
+	_ = addSampleData(file, samplesIndex, sampleData)
+
+	if err := file.SaveAs(filename); err != nil {
+		fmt.Println(err)
+	}
+
+	return nil
+}
+
+func addPatientData(file *excelize.File, index int, patientData []PatientData) error {
+	file.SetActiveSheet(index)
+
+	for idx, columnHeader := range PatientDataHeaders() {
+		cell := string(rune(idx+'A')) + "1"
+		_ = file.SetCellValue("Patients Data", cell, columnHeader)
+	}
+
+	for row, data := range patientData {
+		for idx, value := range data.AsStringArray() {
+			cell := string(rune(idx+'A')) + fmt.Sprint(row+2)
+			_ = file.SetCellValue("Patients Data", cell, value)
+		}
+	}
+
+	return nil
+}
+
+func addSampleData(file *excelize.File, index int, sampleData []SampleData) error {
+	file.SetActiveSheet(index)
+
+	for idx, columnHeader := range SampleDataHeaders() {
+		cell := string(rune(idx+'A')) + "1"
+		_ = file.SetCellValue("Samples Data", cell, columnHeader)
+	}
+
+	for row, data := range sampleData {
+		for idx, value := range data.AsStringArray() {
+			cell := string(rune(idx+'A')) + fmt.Sprint(row+2)
+			_ = file.SetCellValue("Samples Data", cell, value)
+		}
 	}
 
 	return nil

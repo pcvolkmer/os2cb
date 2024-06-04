@@ -373,3 +373,57 @@ type SampleData struct {
 	//Mutations             string `csv:"MUTATIONS"`
 	//Cnv                   string `csv:"CNV"`
 }
+
+func SampleDataHeaders() []string {
+	return []string{
+		"PATIENT_ID",
+		"SAMPLE_ID",
+		"SAMPLE_LOC_REF_PRIMARUS",
+		"SAMPLE_METHOD",
+		"SAMPLE_LOCATION",
+		"SAMPLE_AGE",
+		"TUMOR_CELL_AMOUNT",
+		"SEQUENCING_DNA_PANEL",
+		"SEQUENCING_DNA_PLATFORM",
+		"FUSION_RNA_PANEL",
+		"SEQUENCING_RNA_PLATFORM",
+		"TMB_SCORE",
+		"TPS",
+		"ICS",
+		"CPS",
+		"MSI_IG",
+		"MSI_PCR",
+		"MSI_PANEL",
+		"HER2_FISH",
+		"OTHER_EXAMINATION",
+		"OTHER_IHC",
+		"DAKO_SCORE",
+	}
+}
+
+func (data *SampleData) AsStringArray() []string {
+	return []string{
+		data.PatientID,
+		data.SampleID,
+		data.SampleLocRefPrimarus,
+		data.SampleMethod,
+		data.SampleLocation,
+		data.SampleAge,
+		data.TumorCellAmount,
+		data.SequencingDnaPanel,
+		data.SequencingDnaPlatform,
+		data.FusionRnaPanel,
+		data.SequencingRnaPlatform,
+		data.TmbScore,
+		data.Tps,
+		data.Ics,
+		data.Cps,
+		data.MsiIg,
+		data.MsiPcr,
+		data.MsiPanel,
+		data.Her2Fish,
+		data.OtherExamination,
+		data.OtherIhc,
+		data.DakoScore,
+	}
+}
