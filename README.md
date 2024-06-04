@@ -28,6 +28,7 @@ Flags:
 Commands:
   export-patients    Export patient data
   export-samples     Export sample data
+  export-xlsx        Export all data into Excel file
   preview            Show patient data. Exit Preview-Mode with <CTRL>+'C'
 ```
 
