@@ -231,15 +231,15 @@ func exportXlsx(cli *CLI, patientIds []string, db *sql.DB) {
 		return
 	}
 
-	patientsData := []PatientData{}
-	samplesData := []SampleData{}
+	patientsData := make([]PatientData, 0)
+	samplesData := make([]SampleData, 0)
 	if data, err := FetchAllPatientData(patientIds, db); err == nil {
-		patientsData = data
+		patientsData = append(patientsData, data...)
 	} else {
 		log.Printf(err.Error())
 	}
 	if data, err := FetchAllSampleData(patientIds, db); err == nil {
-		samplesData = data
+		samplesData = append(samplesData, data...)
 	} else {
 		log.Printf(err.Error())
 	}
