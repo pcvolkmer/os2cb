@@ -1,4 +1,4 @@
-name: Upload release assets
+name: Create release and upload assets
 
 on:
   push:
@@ -20,6 +20,8 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         with:
           draft: 'true'
+          make_latest: 'true'
+          generate_release_notes: 'true'
           files: |
             *linux.tar.gz
             *win64.zip
