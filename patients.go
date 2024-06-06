@@ -253,7 +253,7 @@ func appendDiagnoseDaten(patientID string, data *PatientData, allTk bool) *Patie
 			}
 		}
 
-		data.PastMalignantDisease = strings.Join(diags, " + ")
+		data.PastMalignantDisease = sanitizeUmlaute(strings.Join(diags, " + "))
 	}
 
 	return data
