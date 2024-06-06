@@ -71,12 +71,13 @@ func WriteXlsxFile(filename string, patientData []PatientData, sampleData []Samp
 		}
 	}()
 
-	_ = file.DeleteSheet("Sheet1")
 	patientsIndex, _ := file.NewSheet("Patients Data")
 	samplesIndex, _ := file.NewSheet("Samples Data")
 
 	_ = addPatientData(file, patientsIndex, patientData)
 	_ = addSampleData(file, samplesIndex, sampleData)
+
+	_ = file.DeleteSheet("Sheet1")
 
 	if err := file.SaveAs(filename); err != nil {
 		fmt.Println(err)
