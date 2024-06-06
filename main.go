@@ -88,6 +88,11 @@ func main() {
 
 	initCLI()
 
+	if (context.Command() == "export-xls" || context.Command() == "export-xlsx") && !strings.HasSuffix(cli.ExportXlsx.Filename, ".xlsx") {
+		log.Fatalf("Cannot use filename: '%s'. Required filename suffix is '.xlsx'", cli.ExportXlsx.Filename)
+		return
+	}
+
 	if len(cli.Password) == 0 {
 		fmt.Print("Passwort: ")
 		if bytePw, err := term.ReadPassword(int(syscall.Stdin)); err == nil {
@@ -226,11 +231,6 @@ func handleCommand[D PatientData | SampleData](cli *CLI, db *sql.DB, fetchFunc f
 }
 
 func exportXlsx(cli *CLI, patientIds []string, db *sql.DB) {
-	if !strings.HasSuffix(cli.ExportXlsx.Filename, ".xlsx") {
-		log.Fatalf("Cannot use filename: '%s'. Required filename suffix is '.xlsx'", cli.ExportXlsx.Filename)
-		return
-	}
-
 	patientsData := make([]PatientData, 0)
 	samplesData := make([]SampleData, 0)
 	if data, err := FetchAllPatientData(patientIds, db); err == nil {
