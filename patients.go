@@ -206,7 +206,7 @@ func appendDiagnoseDaten(patientID string, data *PatientData, allTk bool) *Patie
 
 		if err := row.Scan(&icdo3histologie, &beginndatum, &icd10, &fernmetastasen, &diagnose, &osMonth, &firstMtbYear); err == nil {
 			// OS_MONTH
-			// Aktuell nur ganze Monate als Kommazahl (Anzahl Tage / 30)
+			// Aktuell nur ganze Monate als Kommazahl (Anzahl Tage / 30) - ermittelt über SQL-Query
 			if osMonth, err := osMonth.Value(); err == nil && osMonth != nil {
 				data.OsMonths = fmt.Sprintf("%d.0", osMonth)
 			}
