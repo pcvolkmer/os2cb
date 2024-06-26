@@ -171,12 +171,19 @@ func appendDiagnoseDaten(patientID string, data *PatientData, allTk bool) *Patie
     	icd10,
     	fernmetastasen,
     	pcve.shortdesc AS diagnose,
-    	ROUND(DATEDIFF(IF(sterbedatum IS NULL, NOW(), sterbedatum),diagnosedatum) / 30) AS os_month
+    	ROUND(DATEDIFF(IF(sterbedatum IS NULL, NOW(), sterbedatum),diagnosedatum) / 30) AS os_month,
+    	sub.first_mtb_year
 		FROM prozedur
 		JOIN dk_diagnose ON prozedur.id = dk_diagnose.id
 		JOIN property_catalogue_version_entry pcve ON pcve.code = icd10 AND pcve.property_version_id = icd10_propcat_version
 		JOIN patient p on p.id = prozedur.patient_id
 		JOIN erkrankung_prozedur ep ON ep.prozedur_id = prozedur.id
+		LEFT OUTER JOIN (
+			SELECT erkrankung_id, MIN(YEAR(beginndatum)) AS first_mtb_year FROM prozedur p
+				JOIN dk_tumorkonferenz dt ON (p.id = dt.id AND dt.tk = '27')
+				JOIN erkrankung_prozedur ep ON (ep.prozedur_id = p.id)
+				GROUP BY erkrankung_id
+		) sub ON (sub.erkrankung_id = ep.erkrankung_id)
 		WHERE prozedur.geloescht = 0 AND p.patienten_id = ? AND ep.erkrankung_id IN (
 			SELECT ep.erkrankung_id FROM dk_tumorkonferenz
 				JOIN prozedur pro on dk_tumorkonferenz.id = pro.id
@@ -193,10 +200,11 @@ func appendDiagnoseDaten(patientID string, data *PatientData, allTk bool) *Patie
 	var fernmetastasen sql.NullString
 	var diagnose sql.NullString
 	var osMonth sql.NullInt16
+	var firstMtbYear sql.NullString
 
 	if row := db.QueryRow(query, patientID, patientID, allTk); row != nil {
 
-		if err := row.Scan(&icdo3histologie, &beginndatum, &icd10, &fernmetastasen, &diagnose, &osMonth); err == nil {
+		if err := row.Scan(&icdo3histologie, &beginndatum, &icd10, &fernmetastasen, &diagnose, &osMonth, &firstMtbYear); err == nil {
 			// OS_MONTH
 			// Aktuell nur ganze Monate als Kommazahl (Anzahl Tage / 30)
 			if osMonth, err := osMonth.Value(); err == nil && osMonth != nil {
@@ -226,6 +234,11 @@ func appendDiagnoseDaten(patientID string, data *PatientData, allTk bool) *Patie
 				if fernmetastasen == 1 {
 					data.SpreadOfDisease = "metastasiert"
 				}
+			}
+
+			// Erstes Jahr mit MTB
+			if firstMtbYear, err := firstMtbYear.Value(); err == nil && firstMtbYear != nil {
+				data.XFirstMtbYear = fmt.Sprint(firstMtbYear)
 			}
 		}
 	}
@@ -281,6 +294,7 @@ type PatientData struct {
 	OsMonths                 string `csv:"OS_MONTHS"`
 	DfsStatus                string `csv:"DFS_STATUS"`
 	DfsMonths                string `csv:"DFS_MONTHS"`
+	XFirstMtbYear            string `csv:"x_first_mtb_year"`
 }
 
 func PatientDataHeaders() []string {
@@ -305,6 +319,7 @@ func PatientDataHeaders() []string {
 		"OS_MONTHS",
 		"DFS_STATUS",
 		"DFS_MONTHS",
+		"x_first_mtb_year",
 	}
 }
 
@@ -331,5 +346,6 @@ func (data *PatientData) AsStringArray() []string {
 		data.OsMonths,
 		data.DfsStatus,
 		data.DfsMonths,
+		data.XFirstMtbYear,
 	}
 }
