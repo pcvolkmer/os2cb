@@ -12,10 +12,10 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-//go:embed resources/prefix-data_clinical_patient.txt
+//go:embed resources/prefix-data_clinical_patient.tsv
 var prefixDataClinicalPatient string
 
-//go:embed resources/prefix-data_clinical_sample.txt
+//go:embed resources/prefix-data_clinical_sample.tsv
 var prefixDataClinicalSample string
 
 // Liest eine bestehende Datei ein
