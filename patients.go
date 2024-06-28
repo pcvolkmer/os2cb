@@ -172,14 +172,14 @@ func appendDiagnoseDaten(patientID string, data *PatientData, allTk bool) *Patie
     	fernmetastasen,
     	pcve.shortdesc AS diagnose,
     	ROUND(DATEDIFF(IF(sterbedatum IS NULL, NOW(), sterbedatum),diagnosedatum) / 30) AS os_month,
-    	sub.first_mtb_year
+    	YEAR(sub.first_mtb) AS first_mtb_year
 		FROM prozedur
 		JOIN dk_diagnose ON prozedur.id = dk_diagnose.id
 		JOIN property_catalogue_version_entry pcve ON pcve.code = icd10 AND pcve.property_version_id = icd10_propcat_version
 		JOIN patient p on p.id = prozedur.patient_id
 		JOIN erkrankung_prozedur ep ON ep.prozedur_id = prozedur.id
 		LEFT OUTER JOIN (
-			SELECT erkrankung_id, MIN(YEAR(beginndatum)) AS first_mtb_year FROM prozedur p
+			SELECT erkrankung_id, MIN(beginndatum) AS first_mtb FROM prozedur p
 				JOIN dk_tumorkonferenz dt ON (p.id = dt.id AND dt.tk = '27')
 				JOIN erkrankung_prozedur ep ON (ep.prozedur_id = p.id)
 				GROUP BY erkrankung_id
