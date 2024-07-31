@@ -14,6 +14,7 @@ import (
 	"golang.org/x/text/transform"
 	"io"
 	"log"
+	"slices"
 	"strings"
 	"syscall"
 
@@ -28,7 +29,7 @@ var (
 )
 
 type Globals struct {
-	User     string `short:"U" help:"Database username" required:""`
+	User     string `short:"U" help:"Database username" required:"NA"`
 	Password string `short:"P" help:"Database password"`
 	Host     string `short:"H" help:"Database host" default:"localhost"`
 	Port     int    `help:"Database port" default:"3306"`
@@ -51,23 +52,29 @@ type CLI struct {
 	PatientSelection
 
 	ExportPatients struct {
-		Filename string `help:"Exportiere in diese Datei" required:""`
+		Filename string `help:"Exportiere in diese Datei" required:"NA"`
 		Append   bool   `help:"An bestehende Datei anhängen" default:"false"`
 		Csv      bool   `help:"Verwende CSV-Format anstelle TSV-Format. Trennung mit ';' für MS Excel" default:"false"`
-	} `cmd:"" help:"Export patient data"`
+	} `cmd:"NA" help:"Export patient data"`
 
 	ExportSamples struct {
-		Filename string `help:"Exportiere in diese Datei" required:""`
+		Filename string `help:"Exportiere in diese Datei" required:"NA"`
 		Append   bool   `help:"An bestehende Datei anhängen" default:"false"`
 		Csv      bool   `help:"Verwende CSV-Format anstelle TSV-Format. Trennung mit ';' für MS Excel" default:"false"`
-	} `cmd:"" help:"Export sample data"`
+	} `cmd:"NA" help:"Export sample data"`
 
 	ExportXlsx struct {
-		Filename string `help:"Exportiere in diese Datei" required:""`
-	} `aliases:"export-xls" cmd:"" help:"Export all into Excel-File"`
+		Filename string `help:"Exportiere in diese Datei" required:"NA"`
+	} `aliases:"export-xls" cmd:"NA" help:"Export all into Excel-File"`
 
 	Preview struct {
-	} `cmd:"" help:"Show patient data. Exit Preview-Mode with <CTRL>+'C'"`
+	} `cmd:"NA" help:"Show patient data. Exit Preview-Mode with <CTRL>+'C'"`
+
+	FakePatients struct {
+		Input       string `help:"Lese Einsendenummern aus dieser (MAF-)Datei" required:"NA"`
+		PatientFile string `help:"Exportiere Fake-Patienten in diese Datei" required:"NA"`
+		SamplesFile string `help:"Exportiere angepasste Samples mit Fake-PatientID in diese Datei" required:"NA"`
+	} `cmd:"NA" help:"Create fake patients based on samples"`
 }
 
 func initCLI() {
@@ -87,6 +94,14 @@ func initCLI() {
 func main() {
 
 	initCLI()
+
+	gocsv.SetCSVWriter(getCsvWriter(cli.ExportPatients.Csv || cli.ExportSamples.Csv))
+	gocsv.SetCSVReader(getCsvReader(cli.ExportPatients.Csv || cli.ExportSamples.Csv))
+
+	if context.Command() == "fake-patients" {
+		fakePatients(cli)
+		return
+	}
 
 	if (context.Command() == "export-xls" || context.Command() == "export-xlsx") && !strings.HasSuffix(cli.ExportXlsx.Filename, ".xlsx") {
 		log.Fatalf("Cannot use filename: '%s'. Required filename suffix is '.xlsx'", cli.ExportXlsx.Filename)
@@ -126,9 +141,6 @@ func main() {
 	} else {
 		log.Fatalf("Cannot connect to Database: %s\n", err.Error())
 	}
-
-	gocsv.SetCSVWriter(getCsvWriter(cli.ExportPatients.Csv || cli.ExportSamples.Csv))
-	gocsv.SetCSVReader(getCsvReader(cli.ExportPatients.Csv || cli.ExportSamples.Csv))
 
 	if cli.OcaPlus {
 		patients := InitPatients(db)
@@ -251,6 +263,70 @@ func exportXlsx(cli *CLI, patientIds []string, db *sql.DB) {
 
 func preview(db *sql.DB) {
 	NewBrowser(cli.PatientID, cli.NoAnon, db).Show()
+}
+
+func fakePatients(cli *CLI) {
+	var sampleData []SampleData
+	if r, err := ReadFile(cli.FakePatients.Input, sampleData); err == nil {
+		sampleData = r
+	} else {
+		log.Fatalln(err.Error())
+	}
+
+	var uniqueSampleIds = make([]string, 0)
+	var fakePatients = make([]PatientData, 0)
+	var fixedSamples = make([]SampleData, 0)
+
+	// Ersetze PatientID
+	for _, sample := range sampleData {
+		if !slices.Contains(uniqueSampleIds, sample.SampleID) {
+			uniqueSampleIds = append(uniqueSampleIds, sample.SampleID)
+		}
+
+		// Neue Fake-PatientID
+		fakePatientId := fmt.Sprintf("2000%d", slices.IndexFunc(uniqueSampleIds, func(s string) bool {
+			return sample.SampleID == s
+		}))
+		sample.PatientID = fakePatientId
+
+		fixedSamples = append(fixedSamples, sample)
+	}
+
+	// Für jede unique Sample-ID
+	for idx := range uniqueSampleIds {
+		fakePatients = append(fakePatients, PatientData{
+			ID:                       fmt.Sprintf("2000%d", idx),
+			Gender:                   "NA",
+			Sex:                      "NA",
+			Age:                      "NA",
+			IcdO3MorphCode:           "NA",
+			Diagnosis:                "NA",
+			OncotreeCode:             "NA",
+			Icd10Code:                "NA",
+			SpreadOfDisease:          "NA",
+			MtbEcogStatus:            "NA",
+			PastMalignantDisease:     "NA",
+			PretherapyProgress:       "NA",
+			NumSystemicPretherapy:    "NA",
+			PretherapyMedication:     "NA",
+			PretherapyMedicationNcit: "NA",
+			PretherapyBestResponse:   "NA",
+			PretherapyPfs:            "NA",
+			OsStatus:                 "NA",
+			OsMonths:                 "NA",
+			DfsStatus:                "NA",
+			DfsMonths:                "NA",
+			XFirstMtbYear:            "NA",
+		})
+	}
+
+	if err := WriteFile(cli.FakePatients.PatientFile, fakePatients); err != nil {
+		log.Fatalln(err.Error())
+	}
+
+	if err := WriteFile(cli.FakePatients.SamplesFile, fixedSamples); err != nil {
+		log.Fatalln(err.Error())
+	}
 }
 
 // Ermittelt alle Patientendaten von allen angegebenen Patienten
