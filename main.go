@@ -126,21 +126,16 @@ func main() {
 		TLSConfig:            cli.Ssl,
 	}
 
-	if dbx, err := sql.Open("mysql", dbCfg.FormatDSN()); err == nil {
-		if err := dbx.Ping(); err == nil {
-			db = dbx
-			defer func(db *sql.DB) {
-				err := db.Close()
-				if err != nil {
-					log.Println("Cannot close database connection")
-				}
-			}(db)
-		} else {
-			log.Fatalf("Cannot connect to Database: %s\n", err.Error())
-		}
-	} else {
-		log.Fatalf("Cannot connect to Database: %s\n", err.Error())
+	db, dbErr := initDb(dbCfg)
+	if dbErr != nil {
+		log.Fatalf("Cannot connect to Database: %s\n", dbErr.Error())
 	}
+	defer func(db *sql.DB) {
+		err := db.Close()
+		if err != nil {
+			log.Println("Cannot close database connection")
+		}
+	}(db)
 
 	if cli.OcaPlus {
 		patients := InitPatients(db)
@@ -159,6 +154,18 @@ func main() {
 	case "preview":
 		preview(db)
 	default:
+	}
+}
+
+func initDb(dbCfg mysql.Config) (*sql.DB, error) {
+	if dbx, err := sql.Open("mysql", dbCfg.FormatDSN()); err == nil {
+		if err := dbx.Ping(); err == nil {
+			return dbx, nil
+		} else {
+			return nil, err
+		}
+	} else {
+		return nil, err
 	}
 }
 
