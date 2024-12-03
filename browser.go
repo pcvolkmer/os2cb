@@ -304,10 +304,10 @@ func (browser *Browser) createSampleTable(patientIds []string) (*tview.Table, er
 			"OTHER_EXAMINATION",
 			"OTHER_IHC",
 			"DAKO_SCORE",
-			//"FUSIONS",
-			//"SPLICE_VARIANTS",
-			//"MUTATIONS",
-			//"CNV",
+			"FUSIONS",
+			"SPLICE_VARIANTS",
+			"MUTATIONS",
+			"CNV",
 		}
 
 		for idx, item := range headline {
@@ -349,10 +349,10 @@ func (browser *Browser) createSampleTable(patientIds []string) (*tview.Table, er
 			table.SetCellSimple(idx+1, 19, item.OtherExamination)
 			table.SetCellSimple(idx+1, 20, item.OtherIhc)
 			table.SetCellSimple(idx+1, 21, item.DakoScore)
-			//table.SetCellSimple(idx+1, 22, item.Fusions)
-			//table.SetCellSimple(idx+1, 23, item.SpliceVariants)
-			//table.SetCellSimple(idx+1, 24, item.Mutations)
-			//table.SetCellSimple(idx+1, 25, item.Cnv)
+			table.SetCellSimple(idx+1, 22, item.Fusions)
+			table.SetCellSimple(idx+1, 23, item.SpliceVariants)
+			table.SetCellSimple(idx+1, 24, item.Mutations)
+			table.SetCellSimple(idx+1, 25, item.Cnv)
 		}
 
 		return table, nil

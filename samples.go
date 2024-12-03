@@ -228,10 +228,10 @@ func fetchSamplesForDisease(patientID string, diseaseID string, ocaPlusOnly bool
 				data.OtherExamination = "NA"
 				data.OtherIhc = "NA"
 				data.DakoScore = "NA"
-				//data.Fusions = "NA"
-				//data.SpliceVariants = "NA"
-				//data.Mutations = "NA"
-				//data.Cnv = "NA"
+				data.Fusions = "NA"
+				data.SpliceVariants = "NA"
+				data.Mutations = "NA"
+				data.Cnv = "NA"
 
 			}
 
@@ -368,10 +368,10 @@ type SampleData struct {
 	OtherExamination      string `csv:"OTHER_EXAMINATION"`
 	OtherIhc              string `csv:"OTHER_IHC"`
 	DakoScore             string `csv:"DAKO_SCORE"`
-	//Fusions               string `csv:"FUSIONS"`
-	//SpliceVariants        string `csv:"SPLICE_VARIANTS"`
-	//Mutations             string `csv:"MUTATIONS"`
-	//Cnv                   string `csv:"CNV"`
+	Fusions               string `csv:"FUSIONS"`
+	SpliceVariants        string `csv:"SPLICE_VARIANTS"`
+	Mutations             string `csv:"MUTATIONS"`
+	Cnv                   string `csv:"CNV"`
 }
 
 func SampleDataHeaders() []string {
@@ -398,6 +398,10 @@ func SampleDataHeaders() []string {
 		"OTHER_EXAMINATION",
 		"OTHER_IHC",
 		"DAKO_SCORE",
+		"FUSIONS",
+		"SPLICE_VARIANTS",
+		"MUTATIONS",
+		"CNV",
 	}
 }
 
@@ -425,5 +429,9 @@ func (data *SampleData) AsStringArray() []string {
 		data.OtherExamination,
 		data.OtherIhc,
 		data.DakoScore,
+		data.Fusions,
+		data.SpliceVariants,
+		data.Mutations,
+		data.Cnv,
 	}
 }
