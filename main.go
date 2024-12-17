@@ -127,16 +127,16 @@ func main() {
 	}
 
 	if dbx, dbErr := initDb(dbCfg); dbErr == nil {
-		log.Fatalf("Cannot connect to Database: %s\n", dbErr.Error())
-	} else {
 		db = dbx
+		defer func(db *sql.DB) {
+			err := db.Close()
+			if err != nil {
+				log.Println("Cannot close database connection")
+			}
+		}(db)
+	} else {
+		log.Fatalf("Cannot connect to Database: %s\n", dbErr.Error())
 	}
-	defer func(db *sql.DB) {
-		err := db.Close()
-		if err != nil {
-			log.Println("Cannot close database connection")
-		}
-	}(db)
 
 	if cli.OcaPlus {
 		patients := InitPatients(db)
