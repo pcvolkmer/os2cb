@@ -126,9 +126,10 @@ func main() {
 		TLSConfig:            cli.Ssl,
 	}
 
-	db, dbErr := initDb(dbCfg)
-	if dbErr != nil {
+	if dbx, dbErr := initDb(dbCfg); dbErr == nil {
 		log.Fatalf("Cannot connect to Database: %s\n", dbErr.Error())
+	} else {
+		db = dbx
 	}
 	defer func(db *sql.DB) {
 		err := db.Close()
