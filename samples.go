@@ -222,6 +222,15 @@ func fetchSamplesForDisease(patientID string, diseaseID string, ocaPlusOnly bool
 
 					// TMB_SCORE aus neuem Formular "OS.Molekulargenetik" ab rev 81
 					data = *tmb(fmt.Sprint(id), &data)
+
+					// GIM_/HRD_SCORE
+					data.GimScore = "NA"
+					data.HrdScore = "NA"
+					if panelCode, err := panelCode.Value(); err == nil && panelCode == "OCAPlus" {
+						data.GimScore, _ = hrd(fmt.Sprint(id))
+					} else {
+						data.HrdScore, _ = hrd(fmt.Sprint(id))
+					}
 				}
 
 				data.Her2Fish = "NA"
@@ -311,6 +320,28 @@ func msi(prozedurID string, sampleData *SampleData) *SampleData {
 	return sampleData
 }
 
+// Ermittelt den HRD Score für angegebene Hauptprozedur
+func hrd(prozedurID string) (string, error) {
+	query := `SELECT score FROM prozedur_prozedur pp
+		JOIN dk_molekulargenetik ON pp.prozedur1 = dk_molekulargenetik.id
+		JOIN dk_molekluargenmsi ON pp.prozedur2 = dk_molekluargenmsi.id
+		WHERE pp.prozedur1 = ? AND komplexerbiomarker = 'HRD'`
+
+	var score sql.NullString
+
+	if rows, err := db.Query(query, prozedurID); err == nil {
+		for rows.Next() {
+			if err := rows.Scan(&score); err == nil {
+				if score.Valid {
+					return score.String, nil
+				}
+			}
+		}
+	}
+
+	return "NA", fmt.Errorf("No HRD Score entry found")
+}
+
 func tmb(prozedurID string, sampleData *SampleData) *SampleData {
 	query := `SELECT tumormutationalburden FROM dk_molekluargenmsi
     	JOIN prozedur_prozedur pp ON pp.prozedur2 = dk_molekluargenmsi.id
@@ -372,6 +403,8 @@ type SampleData struct {
 	SpliceVariants        string `csv:"SPLICE_VARIANTS"`
 	Mutations             string `csv:"MUTATIONS"`
 	Cnv                   string `csv:"CNV"`
+	GimScore              string `csv:"GIM_SCORE"`
+	HrdScore              string `csv:"HRD_SCORE"`
 }
 
 func SampleDataHeaders() []string {
@@ -402,6 +435,8 @@ func SampleDataHeaders() []string {
 		"SPLICE_VARIANTS",
 		"MUTATIONS",
 		"CNV",
+		"GIM_SCORE",
+		"HRD_SCORE",
 	}
 }
 
@@ -433,5 +468,7 @@ func (data *SampleData) AsStringArray() []string {
 		data.SpliceVariants,
 		data.Mutations,
 		data.Cnv,
+		data.GimScore,
+		data.HrdScore,
 	}
 }
