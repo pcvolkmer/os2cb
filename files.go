@@ -90,13 +90,13 @@ func addPatientData(file *excelize.File, index int, patientData []PatientData) e
 	file.SetActiveSheet(index)
 
 	for idx, columnHeader := range PatientDataHeaders() {
-		cell := string(rune(idx+'A')) + "1"
+		cell := getColumn(idx) + "1"
 		_ = file.SetCellValue("Patients Data", cell, columnHeader)
 	}
 
 	for row, data := range patientData {
 		for idx, value := range data.AsStringArray() {
-			cell := string(rune(idx+'A')) + fmt.Sprint(row+2)
+			cell := getColumn(idx) + fmt.Sprint(row+2)
 			_ = file.SetCellValue("Patients Data", cell, value)
 		}
 	}
@@ -108,16 +108,27 @@ func addSampleData(file *excelize.File, index int, sampleData []SampleData) erro
 	file.SetActiveSheet(index)
 
 	for idx, columnHeader := range SampleDataHeaders() {
-		cell := string(rune(idx+'A')) + "1"
+		cell := getColumn(idx) + "1"
 		_ = file.SetCellValue("Samples Data", cell, columnHeader)
 	}
 
 	for row, data := range sampleData {
 		for idx, value := range data.AsStringArray() {
-			cell := string(rune(idx+'A')) + fmt.Sprint(row+2)
+			cell := getColumn(idx) + fmt.Sprint(row+2)
 			_ = file.SetCellValue("Samples Data", cell, value)
 		}
 	}
 
 	return nil
+}
+
+func getColumn(idx int) string {
+	z := int('Z' - 'A' + 1)
+	m := idx % z
+	if idx <= m {
+		return string(rune(idx + 'A'))
+	}
+
+	r := ((idx - m) / z) - 1
+	return string(rune(r+'A')) + string(rune(m+'A'))
 }
