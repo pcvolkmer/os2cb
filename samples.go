@@ -231,6 +231,12 @@ func fetchSamplesForDisease(patientID string, diseaseID string, ocaPlusOnly bool
 					} else {
 						data.HrdScore, _ = hrd(fmt.Sprint(id))
 					}
+
+					// HRD-LOH, TAI, LST
+					// NA for now
+					data.HrdLoh = "NA"
+					data.Tai = "NA"
+					data.Lst = "NA"
 				}
 
 				data.Her2Fish = "NA"
@@ -405,6 +411,9 @@ type SampleData struct {
 	Cnv                   string `csv:"CNV"`
 	GimScore              string `csv:"GIM_SCORE"`
 	HrdScore              string `csv:"HRD_SCORE"`
+	HrdLoh                string `csv:"HRD_LOH"`
+	Tai                   string `csv:"TAI"`
+	Lst                   string `csv:"LST"`
 }
 
 func SampleDataHeaders() []string {
@@ -437,6 +446,9 @@ func SampleDataHeaders() []string {
 		"CNV",
 		"GIM_SCORE",
 		"HRD_SCORE",
+		"HRD_LOH",
+		"TAI",
+		"LST",
 	}
 }
 
