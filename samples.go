@@ -226,17 +226,20 @@ func fetchSamplesForDisease(patientID string, diseaseID string, ocaPlusOnly bool
 					// GIM_/HRD_SCORE
 					data.GimScore = "NA"
 					data.HrdScore = "NA"
-					if panelCode, err := panelCode.Value(); err == nil && panelCode == "OCAPlus" {
-						data.GimScore, _ = hrd(fmt.Sprint(id))
-					} else {
-						data.HrdScore, _ = hrd(fmt.Sprint(id))
-					}
-
 					// HRD-LOH, TAI, LST
-					// NA for now
 					data.HrdLoh = "NA"
 					data.Tai = "NA"
 					data.Lst = "NA"
+
+					hrd, _ := hrd(fmt.Sprint(id))
+					if panelCode, err := panelCode.Value(); err == nil && panelCode == "OCAPlus" {
+						data.GimScore = hrd.score
+					} else {
+						data.HrdScore = hrd.score
+					}
+					data.Tai = hrd.tai
+					data.HrdLoh = hrd.loh
+					data.Lst = hrd.lst
 				}
 
 				data.Her2Fish = "NA"
@@ -326,26 +329,59 @@ func msi(prozedurID string, sampleData *SampleData) *SampleData {
 	return sampleData
 }
 
+type Hrd struct {
+	score string
+	loh   string
+	tai   string
+	lst   string
+}
+
 // Ermittelt den HRD Score für angegebene Hauptprozedur
-func hrd(prozedurID string) (string, error) {
-	query := `SELECT score FROM prozedur_prozedur pp
+func hrd(prozedurID string) (Hrd, error) {
+	query := `SELECT score, hrdloh, hrdtai, hrdlst FROM prozedur_prozedur pp
 		JOIN dk_molekulargenetik ON pp.prozedur1 = dk_molekulargenetik.id
 		JOIN dk_molekluargenmsi ON pp.prozedur2 = dk_molekluargenmsi.id
 		WHERE pp.prozedur1 = ? AND komplexerbiomarker = 'HRD'`
 
 	var score sql.NullString
+	var loh sql.NullString
+	var tai sql.NullString
+	var lst sql.NullString
+
+	result := Hrd{
+		score: "NA",
+		loh:   "NA",
+		tai:   "NA",
+		lst:   "NA",
+	}
 
 	if rows, err := db.Query(query, prozedurID); err == nil {
 		for rows.Next() {
 			if err := rows.Scan(&score); err == nil {
 				if score.Valid {
-					return score.String, nil
+					result.score = score.String
+				}
+			}
+			if err := rows.Scan(&loh); err == nil {
+				if loh.Valid {
+					result.loh = loh.String
+				}
+			}
+			if err := rows.Scan(&tai); err == nil {
+				if tai.Valid {
+					result.tai = tai.String
+				}
+			}
+			if err := rows.Scan(&lst); err == nil {
+				if lst.Valid {
+					result.lst = lst.String
 				}
 			}
 		}
+		return result, nil
 	}
 
-	return "NA", fmt.Errorf("No HRD Score entry found")
+	return result, fmt.Errorf("No HRD Score entry found")
 }
 
 func tmb(prozedurID string, sampleData *SampleData) *SampleData {
