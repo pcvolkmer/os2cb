@@ -331,14 +331,14 @@ func msi(prozedurID string, sampleData *SampleData) *SampleData {
 
 type Hrd struct {
 	score string
-	loh   string
-	tai   string
 	lst   string
+	tai   string
+	loh   string
 }
 
 // Ermittelt den HRD Score für angegebene Hauptprozedur
 func hrd(prozedurID string) (Hrd, error) {
-	query := `SELECT score, hrdloh, hrdtai, hrdlst FROM prozedur_prozedur pp
+	query := `SELECT score, hrdlst, hrdtai, hrdloh FROM prozedur_prozedur pp
 		JOIN dk_molekulargenetik ON pp.prozedur1 = dk_molekulargenetik.id
 		JOIN dk_molekluargenmsi ON pp.prozedur2 = dk_molekluargenmsi.id
 		WHERE pp.prozedur1 = ? AND komplexerbiomarker = 'HRD'`
@@ -350,31 +350,25 @@ func hrd(prozedurID string) (Hrd, error) {
 
 	result := Hrd{
 		score: "NA",
-		loh:   "NA",
-		tai:   "NA",
 		lst:   "NA",
+		tai:   "NA",
+		loh:   "NA",
 	}
 
 	if rows, err := db.Query(query, prozedurID); err == nil {
 		for rows.Next() {
-			if err := rows.Scan(&score); err == nil {
+			if err := rows.Scan(&score, &lst, &tai, &loh); err == nil {
 				if score.Valid {
 					result.score = score.String
 				}
-			}
-			if err := rows.Scan(&loh); err == nil {
-				if loh.Valid {
-					result.loh = loh.String
+				if lst.Valid {
+					result.lst = lst.String
 				}
-			}
-			if err := rows.Scan(&tai); err == nil {
 				if tai.Valid {
 					result.tai = tai.String
 				}
-			}
-			if err := rows.Scan(&lst); err == nil {
-				if lst.Valid {
-					result.lst = lst.String
+				if loh.Valid {
+					result.loh = loh.String
 				}
 			}
 		}
@@ -447,9 +441,9 @@ type SampleData struct {
 	Cnv                   string `csv:"CNV"`
 	GimScore              string `csv:"GIM_SCORE"`
 	HrdScore              string `csv:"HRD_SCORE"`
-	HrdLoh                string `csv:"HRD_LOH"`
-	Tai                   string `csv:"TAI"`
 	Lst                   string `csv:"LST"`
+	Tai                   string `csv:"TAI"`
+	HrdLoh                string `csv:"HRD_LOH"`
 }
 
 func SampleDataHeaders() []string {
@@ -482,9 +476,9 @@ func SampleDataHeaders() []string {
 		"CNV",
 		"GIM_SCORE",
 		"HRD_SCORE",
-		"HRD_LOH",
-		"TAI",
 		"LST",
+		"TAI",
+		"HRD_LOH",
 	}
 }
 
@@ -518,5 +512,8 @@ func (data *SampleData) AsStringArray() []string {
 		data.Cnv,
 		data.GimScore,
 		data.HrdScore,
+		data.Lst,
+		data.Tai,
+		data.HrdLoh,
 	}
 }
