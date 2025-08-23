@@ -39,7 +39,8 @@ Commands:
   fake-patients               Create fake patients based on samples
 ```
 
-Als Alternative zu "--patient-id=" kann auch "--oca-plus" angegeben werden, um alle Patienten mit OCAPLus-Panel einzuschließen.
+Als Alternative zu "--patient-id=" kann auch "--oca-plus" angegeben werden, um alle Patienten mit OCAPLus-Panel
+einzuschließen.
 
 Zusätzliche Optionen für die Befehle `export-patients` und `export-samples`
 
@@ -53,15 +54,20 @@ Zusätzliche Optionen für die Befehle `export-patients` und `export-samples`
 
 Wird das Passwort nicht als Parameter angegeben, so wird im Anschluss danach gefragt.
 
-### Hinweis zum Export der Export-Dateien
+### Hinweis zum Speichern der Export-Dateien
 
 Die Dateien werden als TSV-Datei (durch Tabulator getrennt) und UTF-8 kodiert gespeichert, damit ein Datenimport mit
 cBioportal ohne Umlautprobleme erfolgen kann.
 
 ### Hinweis zum Export im CSV-Format
 
-Für den Export im CSV-Format wird zur Kompatibilität mit MS Excel der UTF-16 Zeichensatz verwendet. Das Trennzeichen ist dabei `;`.
+Für den Export im CSV-Format wird zur Kompatibilität mit MS Excel der UTF-16 Zeichensatz verwendet. Das Trennzeichen ist
+dabei `;`.
 Es handelt sich daher **nicht** um eine CSV-Datei nach [RFC 4180](https://www.rfc-editor.org/rfc/rfc4180).
+
+### Hinweis zum Export im XLSX-Format
+
+Für den Export im XLSX-Format (Excel) wird für Patienten und Proben jeweils ein eigenes Datenblatt angelegt.
 
 ### Hinweis zu Diagnosen
 
@@ -72,7 +78,8 @@ Mit der Option `--all-tk` werden alle Diagnosen berücksichtigt, denen eine beli
 
 ### Hinweise zu Proben-IDs
 
-Proben-IDs aus Würzburg werden in der Form `A/2024/1234` dokumentiert und von der Anwendung in das Format `A24-1234` gewandelt. 
+Proben-IDs aus Würzburg werden in der Form `A/2024/1234` dokumentiert und von der Anwendung in das Format `A24-1234`
+gewandelt.
 
 ### Anonymisierung
 
@@ -86,16 +93,18 @@ Dies entspricht folgendem Shell-Befehl:
 echo -n "<ID>" | sha256sum | sed -e 's/^\(.\{10\}\).*/WUE_\1/'
 ```
 
-Der Prefix einer anonymisierten ID kann über den Parameter `--id-prefix` verändert werden. Ohne Angabe wird "WUE" verwendet.
+Der Prefix einer anonymisierten ID kann über den Parameter `--id-prefix` verändert werden. Ohne Angabe wird "WUE"
+verwendet.
 
-Mit der Option `--no-anon` kann die Anonymisierung deaktiviert werden. 
+Mit der Option `--no-anon` kann die Anonymisierung deaktiviert werden.
 **Achtung: IDs von Patienten und Proben werden direkt ausgegeben!**
 
 ### Anzeige von Daten innerhalb der Anwendung
 
-Das Anzeigen von zu exportierenden Daten wird durch die beiden Befehle `display-patients` und `display-samples` ermöglicht, ohne in eine Datei speichern zu müssen.
-Die Parameter `--filename`, `--apend` und `--csv` werden dabei ignoriert.
+Das Anzeigen von zu exportierenden Daten wird durch den Befehl `preview` ermöglicht, ohne in eine Datei speichern zu
+müssen. Die Parameter `--filename`, `--apend` und `--csv` werden dabei ignoriert.
 
-Mit der Tabulator-Taste gelangt man zum nächsten Element. Ist die Tabelle ausgewählt, kann mit den Pfeiltasten der anzuzeigende Ausschnitt ausgewählt werden.
+Mit der Tabulator-Taste gelangt man zum nächsten Element. Ist die Tabelle ausgewählt, kann mit den Pfeiltasten der
+anzuzeigende Ausschnitt ausgewählt werden.
 
 ![Ansicht der Anzeige von Daten](display.gif)
