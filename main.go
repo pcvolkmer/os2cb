@@ -20,8 +20,9 @@ import (
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
 
-	_ "github.com/go-sql-driver/mysql"
 	_ "syscall"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var (
@@ -45,7 +46,8 @@ type Globals struct {
 
 type PatientSelection struct {
 	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs" group:"Patienten" xor:"PatientID,OcaPlus" required:"true"`
-	OcaPlus   bool     `help:"Alle Patienten mit OCAPlus-Panel" group:"Patienten" xor:"PatientID,OcaPlus" required:"true"`
+	OcaPlus   bool     `help:"Alle Patienten mit OCAPlus-Panel" group:"Patienten" xor:"PatientID,OcaPlus,All" required:"true"`
+	All       bool     `help:"Alle Patienten" group:"Patienten" xor:"PatientID,OcaPlus,All" required:"true"`
 	PersStamm int      `help:"ID des Personenstamms" group:"Patienten" default:"4"`
 }
 
@@ -143,6 +145,11 @@ func main() {
 	if cli.OcaPlus {
 		patients := InitPatients(db)
 		cli.PatientID, _ = patients.FetchOcaPlusPatientIds()
+	}
+
+	if cli.All {
+		patients := InitPatients(db)
+		cli.PatientID, _ = patients.FetchAllPatientIds()
 	}
 
 	switch context.Command() {

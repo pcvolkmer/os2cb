@@ -51,6 +51,29 @@ func (patients *Patients) FetchOcaPlusPatientIds() ([]string, error) {
 	return patientenIds, nil
 }
 
+func (patients *Patients) FetchAllPatientIds() ([]string, error) {
+	query := `SELECT DISTINCT patienten_id FROM dk_molekulargenetik 
+		JOIN prozedur ON (prozedur.id = dk_molekulargenetik.id)
+		JOIN patient ON (patient.id = prozedur.patient_id)
+		WHERE prozedur.geloescht = 0
+		ORDER BY patienten_id;`
+
+	var patientenIds []string
+
+	if rows, err := db.Query(query); err == nil {
+		var patientenId sql.NullString
+		for rows.Next() {
+			if err := rows.Scan(&patientenId); err == nil {
+				patientenIds = append(patientenIds, patientenId.String)
+			}
+		}
+	} else {
+		return nil, err
+	}
+
+	return patientenIds, nil
+}
+
 func (patients *Patients) FetchBy(patientIDs []string, tkType string, allTk bool) ([]PatientData, error) {
 	query := `SELECT DISTINCT
 	   patient.patienten_id,
