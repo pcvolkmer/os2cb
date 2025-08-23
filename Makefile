@@ -19,7 +19,7 @@ win-package: win-binary-x86_64
 	mkdir -p os2cb
 	cp target/os2cb.exe os2cb/
 	cp README.md os2cb/
-	cp LICENSE.txt os2cb/
+	cp LICENSE os2cb/
 	zip os2cb-$(VER)_win64.zip os2cb/* >/dev/null
 	rm -rf os2cb || true
 
@@ -28,7 +28,7 @@ linux-package: linux-binary-x86_64
 	mkdir -p os2cb
 	cp target/os2cb os2cb/
 	cp README.md os2cb/
-	cp LICENSE.txt os2cb/
+	cp LICENSE os2cb/
 	tar -czvf os2cb-$(VER)_linux.tar.gz os2cb/ >/dev/null
 	rm -rf os2cb || true
 
