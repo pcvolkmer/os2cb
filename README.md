@@ -1,7 +1,7 @@
-# Onkostar zu cBioportal Bayern
+# Onkostar zu cBioportal
 
 Ziel dieser Anwendung ist der Export relevanter anonymisierter Patientendaten und Daten zu Tumorproben aus Onkostar,
-damit diese in eine bayernweite cBioportal Installation importiert werden können.
+damit diese in eine cBioportal Installation importiert werden können.
 
 ## Anwendung
 
@@ -13,23 +13,30 @@ Usage: os2cb <command>
 A simple tool to export data from Onkostar into TSV file format for cBioportal
 
 Flags:
-  -h, --help                         Show context-sensitive help.
-  -U, --user=STRING                  Database username
-  -P, --password=STRING              Database password
-  -H, --host="localhost"             Database host
-      --port=3306                    Database port
-      --ssl="false"                  SSL-Verbindung ('true', 'false', 'skip-verify', 'preferred')
-  -D, --database="onkostar"          Database name
-      --patient-id=PATIENT-ID,...    PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs
-      --id-prefix="WUE"              Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben.
-      --all-tk                       Diagnosen: Erlaube Diagnosen mit allen Tumorkonferenzen, nicht nur Diagnosen mit MTBs
-      --no-anon                      Keine ID-Anonymisierung anwenden. Hierbei wird auch das ID-Prefix ignoriert.
+  -h, --help                   Show context-sensitive help.
+  -U, --user=STRING            Database username
+  -P, --password=STRING        Database password
+  -H, --host="localhost"       Database host
+      --port=3306              Database port
+      --ssl="false"            SSL-Verbindung ('true', 'false', 'skip-verify', 'preferred')
+  -D, --database="onkostar"    Database name
+      --id-prefix="WUE"        Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben.
+      --all-tk                 Diagnosen: Erlaube Diagnosen mit allen Tumorkonferenzen, nicht nur Diagnosen mit MTBs
+      --mtb-type="27"          MTB-Typ der Tumorkonferenz in Onkostar. Wenn nicht angegeben, Wert: '27'
+      --no-anon                Keine ID-Anonymisierung anwenden. Hierbei wird auch das ID-Prefix ignoriert.
+
+Patienten
+  --patient-id=PATIENT-ID,...    PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs
+  --oca-plus                     Alle Patienten mit OCAPlus-Panel
+  --all                          Alle Patienten
+  --pers-stamm=4                 ID des Personenstamms
 
 Commands:
-  export-patients    Export patient data
-  export-samples     Export sample data
-  export-xlsx        Export all data into Excel file
-  preview            Show patient data. Exit Preview-Mode with <CTRL>+'C'
+  export-patients             Export patient data
+  export-samples              Export sample data
+  export-xlsx (export-xls)    Export all into Excel-File
+  preview                     Show patient data. Exit Preview-Mode with <CTRL>+'C'
+  fake-patients               Create fake patients based on samples
 ```
 
 Als Alternative zu "--patient-id=" kann auch "--oca-plus" angegeben werden, um alle Patienten mit OCAPLus-Panel einzuschließen.
