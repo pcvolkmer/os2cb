@@ -12,7 +12,7 @@ func TestShouldReturnExpectedColumn(t *testing.T) {
 	}
 
 	for key, value := range testsArgs {
-		actual := getColumn(key)
+		actual := getExcelColumn(key)
 		if actual != value {
 			t.Logf("wrong Column: Expected %s, got %s", value, actual)
 			t.Fail()
