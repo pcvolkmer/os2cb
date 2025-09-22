@@ -320,7 +320,7 @@ func (browser *Browser) createSampleTable(patientIds []string) (*tview.Table, er
 		}
 
 		for idx, item := range data {
-			sampleRegExp, err := regexp.Compile("^[A-Z][0-9]+-[0-9]{2}$")
+			sampleRegExp, err := regexp.Compile("^[A-Z]\\d+-\\d{2}$")
 
 			table.SetCellSimple(idx+1, 0, item.PatientID)
 			if err == nil && browser.checkSampleIds {

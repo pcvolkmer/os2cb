@@ -399,7 +399,7 @@ func tmb(prozedurID string, sampleData *SampleData) *SampleData {
 }
 
 func sanitizeSampleId(id string) string {
-	re := regexp.MustCompile("(?P<Letter>[A-Z])/[0-9]{2}(?P<Year2>[0-9]{2})/(?P<LfdNr>[0-9]+)")
+	re := regexp.MustCompile("(?P<Letter>[A-Z])/\\d{2}(?P<Year2>\\d{2})/(?P<LfdNr>\\d+)")
 	if re.MatchString(id) {
 		matches := re.FindStringSubmatch(id)
 		return fmt.Sprintf(
