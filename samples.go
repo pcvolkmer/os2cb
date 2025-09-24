@@ -114,7 +114,7 @@ func fetchSamplesForDisease(patientID string, diseaseID string, ocaPlusOnly bool
 			); err == nil {
 
 				// PANEL_CODE
-				if panelCode, err := panelCode.Value(); err == nil && (panelCode != "OCAPlus" || !ocaPlusOnly) {
+				if panelCode, err := panelCode.Value(); err == nil && (panelCode != "OCAPlus" && ocaPlusOnly) {
 					continue
 				}
 
