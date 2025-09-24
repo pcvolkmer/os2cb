@@ -27,8 +27,10 @@ Flags:
 
 Patienten
   --patient-id=PATIENT-ID,...    PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs
-  --oca-plus                     Alle Patienten mit OCAPlus-Panel
-  --all                          Alle Patienten
+  --oca-plus                     Alle Patienten und Proben mit OCAPlus-Panel
+  --wes                          Alle Patienten und Proben mit WES
+  --wgs                          Alle Patienten und Proben mit WGS
+  --all                          Alle Patienten und Proben
   --pers-stamm=4                 ID des Personenstamms
 
 Commands:
