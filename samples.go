@@ -9,15 +9,24 @@ import (
 	"time"
 )
 
+type SampleFilter = int
+
+const (
+	None SampleFilter = iota
+	OcaPlusOnly
+	WesOnly
+	WgsOnly
+)
+
 type Samples struct {
-	db          *sql.DB
-	ocaPlusOnly bool
+	db     *sql.DB
+	filter SampleFilter
 }
 
-func InitSamples(db *sql.DB, ocaPlusOnly bool) Samples {
+func InitSamples(db *sql.DB, filter SampleFilter) Samples {
 	return Samples{
-		db:          db,
-		ocaPlusOnly: ocaPlusOnly,
+		db:     db,
+		filter: filter,
 	}
 }
 
@@ -43,7 +52,7 @@ func (samples *Samples) Fetch(patientID string) ([]SampleData, error) {
 
 		for rows.Next() {
 			if err := rows.Scan(&erkrankungID); err == nil {
-				if samplesForDisease, err := fetchSamplesForDisease(patientID, erkrankungID, samples.ocaPlusOnly); err == nil {
+				if samplesForDisease, err := fetchSamplesForDisease(patientID, erkrankungID, samples.filter); err == nil {
 					result = append(result, samplesForDisease...)
 				}
 			}
@@ -53,7 +62,7 @@ func (samples *Samples) Fetch(patientID string) ([]SampleData, error) {
 	return nil, errors.New("fetch: No data found")
 }
 
-func fetchSamplesForDisease(patientID string, diseaseID string, ocaPlusOnly bool) ([]SampleData, error) {
+func fetchSamplesForDisease(patientID string, diseaseID string, filter SampleFilter) ([]SampleData, error) {
 
 	query := `SELECT
     	dm.id,
@@ -67,7 +76,8 @@ func fetchSamplesForDisease(patientID string, diseaseID string, ocaPlusOnly bool
     	pcve.shortdesc as sample_location,
     	dm.nukleinsaeure,
     	pcve2.code as panel_code,
-    	pcve2.shortdesc as panel
+    	pcve2.shortdesc as panel,
+		dm.artdersequenzierung
 		FROM prozedur
 		JOIN dk_molekulargenetik dm on prozedur.id = dm.id
 		JOIN erkrankung_prozedur ep on prozedur.id = ep.prozedur_id
@@ -94,6 +104,7 @@ func fetchSamplesForDisease(patientID string, diseaseID string, ocaPlusOnly bool
 		var nukleinsaeure sql.NullString
 		var panelCode sql.NullString
 		var panel sql.NullString
+		var artdersequenzierung sql.NullString
 
 		for rows.Next() {
 			data := SampleData{}
@@ -111,10 +122,21 @@ func fetchSamplesForDisease(patientID string, diseaseID string, ocaPlusOnly bool
 				&nukleinsaeure,
 				&panelCode,
 				&panel,
+				&artdersequenzierung,
 			); err == nil {
 
 				// PANEL_CODE
-				if panelCode, err := panelCode.Value(); err == nil && (panelCode != "OCAPlus" && ocaPlusOnly) {
+				if panelCode, err := panelCode.Value(); err == nil && (panelCode != "OCAPlus" && filter == OcaPlusOnly) {
+					continue
+				}
+
+				// WES_ONLY
+				if artdersequenzierung, err := artdersequenzierung.Value(); err == nil && (artdersequenzierung != "WES" && filter == WesOnly) {
+					continue
+				}
+
+				// WGS_ONLY
+				if artdersequenzierung, err := artdersequenzierung.Value(); err == nil && (artdersequenzierung != "WGS" && filter == WgsOnly) {
 					continue
 				}
 

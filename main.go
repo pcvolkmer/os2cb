@@ -45,9 +45,11 @@ type Globals struct {
 }
 
 type PatientSelection struct {
-	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs" group:"Patienten" xor:"PatientID,OcaPlus" required:"true"`
-	OcaPlus   bool     `help:"Alle Patienten mit OCAPlus-Panel" group:"Patienten" xor:"PatientID,OcaPlus,All" required:"true"`
-	All       bool     `help:"Alle Patienten" group:"Patienten" xor:"PatientID,OcaPlus,All" required:"true"`
+	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs" group:"Patienten" xor:"PatientID,OcaPlus,Wes,Wgs,All" required:"true"`
+	OcaPlus   bool     `help:"Alle Patienten mit OCAPlus-Panel" group:"Patienten" xor:"PatientID,OcaPlus,Wes,Wgs,All" required:"true"`
+	Wes       bool     `help:"Alle Patienten mit WES" group:"Patienten" xor:"PatientID,OcaPlus,Wes,Wgs,All" required:"true"`
+	Wgs       bool     `help:"Alle Patienten mit WGS" group:"Patienten" xor:"PatientID,OcaPlus,Wes,Wgs,All" required:"true"`
+	All       bool     `help:"Alle Patienten" group:"Patienten" xor:"PatientID,OcaPlus,Wes,Wgs,All" required:"true"`
 	PersStamm int      `help:"ID des Personenstamms" group:"Patienten" default:"4"`
 }
 
@@ -145,6 +147,16 @@ func main() {
 	if cli.OcaPlus {
 		patients := InitPatients(db)
 		cli.PatientID, _ = patients.FetchOcaPlusPatientIds()
+	}
+
+	if cli.Wes {
+		patients := InitPatients(db)
+		cli.PatientID, _ = patients.FetchWESPatientIds()
+	}
+
+	if cli.Wgs {
+		patients := InitPatients(db)
+		cli.PatientID, _ = patients.FetchWGSPatientIds()
 	}
 
 	if cli.All {
@@ -361,7 +373,17 @@ func FetchAllPatientData(patientIds []string, db *sql.DB) ([]PatientData, error)
 
 // Ermittelt alle Probendaten von allen angegebenen Patienten
 func FetchAllSampleData(patientIds []string, db *sql.DB) ([]SampleData, error) {
-	samples := InitSamples(db, cli.OcaPlus)
+	filter := None
+
+	if cli.OcaPlus {
+		filter = OcaPlusOnly
+	} else if cli.Wes {
+		filter = WesOnly
+	} else if cli.Wgs {
+		filter = WgsOnly
+	}
+
+	samples := InitSamples(db, filter)
 	var result []SampleData
 	for _, patientID := range patientIds {
 		if data, err := samples.Fetch(patientID); err == nil {
