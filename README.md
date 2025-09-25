@@ -41,8 +41,12 @@ Commands:
   fake-patients               Create fake patients based on samples
 ```
 
-Als Alternative zu "--patient-id=" kann auch "--oca-plus" angegeben werden, um alle Patienten mit OCAPLus-Panel
-einzuschließen.
+Als Alternative zu "--patient-id=" mit Angabe einer oder mehrerer Patienten-IDs kann auch 
+* `--oca-plus` angegeben werden, um alle Patienten mit OCAPlus-Panel und zugehörigen Samples
+* `--wes` angegeben werden, um alle Patienten mit WES und zugehörigen Samples
+* `--wgs` angegeben werden, um alle Patienten mit WGS und zugehörigen Samples
+zu verwenden.
+Im Falle von `--all` werden alle Patienten mit allen Samples verwendet.
 
 Zusätzliche Optionen für die Befehle `export-patients` und `export-samples`
 
