@@ -277,12 +277,12 @@ func exportXlsx(cli *CLI, patientIds []string, db *sql.DB) {
 	if data, err := FetchAllPatientData(patientIds, db); err == nil {
 		patientsData = append(patientsData, data...)
 	} else {
-		log.Printf(err.Error())
+		log.Printf("%s", err.Error())
 	}
 	if data, err := FetchAllSampleData(patientIds, db); err == nil {
 		samplesData = append(samplesData, data...)
 	} else {
-		log.Printf(err.Error())
+		log.Printf("%s", err.Error())
 	}
 
 	if err := WriteXlsxFile(cli.ExportXlsx.Filename, patientsData, samplesData); err != nil {
