@@ -27,6 +27,7 @@ Flags:
 
 Patienten
   --patient-id=PATIENT-ID,...    PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs
+  --from-std-in                  PatientenIDs von StdIn lesen
   --oca-plus                     Alle Patienten und Proben mit OCAPlus-Panel
   --wes                          Alle Patienten und Proben mit WES
   --wgs                          Alle Patienten und Proben mit WGS
@@ -40,6 +41,18 @@ Commands:
   preview                     Show patient data. Exit Preview-Mode with <CTRL>+'C'
   fake-patients               Create fake patients based on samples
 ```
+
+Soll eine Liste mit Patienten-IDs aus einer Datei verarbeitet werden, kann dies wie folgt angegeben werden:
+
+```
+echo "20001234,20005678" | os2cb preview --from-std-in
+```
+bzw.
+```
+cat patients.csv | os2cb preview --from-std-in
+```
+
+In der Datei können die Patienten-IDs durch ein Komma, Semikolon, Tabulator oder Zeilenumbruch getrennt sein.
 
 Als Alternative zu "--patient-id=" mit Angabe einer oder mehrerer Patienten-IDs kann auch 
 * `--oca-plus` angegeben werden, um alle Patienten mit OCAPlus-Panel und zugehörigen Samples

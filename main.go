@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
+	"regexp"
 	"slices"
 	"strings"
 	"syscall"
@@ -45,11 +47,12 @@ type Globals struct {
 }
 
 type PatientSelection struct {
-	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs" group:"Patienten" xor:"PatientID,OcaPlus,Wes,Wgs,All" required:"true"`
-	OcaPlus   bool     `help:"Alle Patienten mit OCAPlus-Panel" group:"Patienten" xor:"PatientID,OcaPlus,Wes,Wgs,All" required:"true"`
-	Wes       bool     `help:"Alle Patienten mit WES" group:"Patienten" xor:"PatientID,OcaPlus,Wes,Wgs,All" required:"true"`
-	Wgs       bool     `help:"Alle Patienten mit WGS" group:"Patienten" xor:"PatientID,OcaPlus,Wes,Wgs,All" required:"true"`
-	All       bool     `help:"Alle Patienten" group:"Patienten" xor:"PatientID,OcaPlus,Wes,Wgs,All" required:"true"`
+	PatientID []string `help:"PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs" group:"Patienten" xor:"PatientID,FromStdIn,OcaPlus,Wes,Wgs,All" required:"true"`
+	FromStdIn bool     `help:"PatientenIDs von StdIn lesen" group:"Patienten" xor:"PatientID,FromStdIn,OcaPlus,Wes,Wgs,All" required:"true"`
+	OcaPlus   bool     `help:"Alle Patienten mit OCAPlus-Panel" group:"Patienten" xor:"PatientID,FromStdIn,OcaPlus,Wes,Wgs,All" required:"true"`
+	Wes       bool     `help:"Alle Patienten mit WES" group:"Patienten" xor:"PatientID,FromStdIn,OcaPlus,Wes,Wgs,All" required:"true"`
+	Wgs       bool     `help:"Alle Patienten mit WGS" group:"Patienten" xor:"PatientID,FromStdIn,OcaPlus,Wes,Wgs,All" required:"true"`
+	All       bool     `help:"Alle Patienten" group:"Patienten" xor:"PatientID,FromStdIn,OcaPlus,Wes,Wgs,All" required:"true"`
 	PersStamm int      `help:"ID des Personenstamms" group:"Patienten" default:"4"`
 }
 
@@ -103,6 +106,16 @@ func main() {
 
 	gocsv.SetCSVWriter(getCsvWriter(cli.ExportPatients.Csv || cli.ExportSamples.Csv))
 	gocsv.SetCSVReader(getCsvReader(cli.ExportPatients.Csv || cli.ExportSamples.Csv))
+
+	// Check PatientIDs on stdin used in bash pipe
+	if cli.FromStdIn {
+		input, err := io.ReadAll(os.Stdin)
+		if err != nil {
+			log.Fatalf("Cannot read Patient IDs\n")
+		}
+		splitRegEx := regexp.MustCompile("\\s*[,;\t\r\n]+\\s*")
+		cli.PatientID = splitRegEx.Split(strings.TrimSpace(string(input)), -1)
+	}
 
 	if context.Command() == "fake-patients" {
 		fakePatients(cli)
