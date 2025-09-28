@@ -15,7 +15,6 @@ import (
 	"syscall"
 
 	"github.com/alecthomas/kong"
-
 	"github.com/go-sql-driver/mysql"
 	"github.com/gocarina/gocsv"
 	"golang.org/x/term"
@@ -34,16 +33,17 @@ var (
 )
 
 type Globals struct {
-	User     string `short:"U" help:"Database username" required:"NA"`
-	Password string `short:"P" help:"Database password"`
-	Host     string `short:"H" help:"Database host" default:"localhost"`
-	Port     int    `help:"Database port" default:"3306"`
-	Ssl      string `help:"SSL-Verbindung ('true', 'false', 'skip-verify', 'preferred')" default:"false"`
-	Database string `short:"D" help:"Database name" default:"onkostar"`
-	IDPrefix string `help:"Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben." default:"WUE"`
-	AllTk    bool   `help:"Diagnosen: Erlaube Diagnosen mit allen Tumorkonferenzen, nicht nur Diagnosen mit MTBs"`
-	MtbType  string `help:"MTB-Typ der Tumorkonferenz in Onkostar. Wenn nicht angegeben, Wert: '27'" default:"27"`
-	NoAnon   bool   `help:"Keine ID-Anonymisierung anwenden. Hierbei wird auch das ID-Prefix ignoriert."`
+	User         string `short:"U" help:"Database username" required:"NA"`
+	Password     string `short:"P" help:"Database password"`
+	Host         string `short:"H" help:"Database host" default:"localhost"`
+	Port         int    `help:"Database port" default:"3306"`
+	Ssl          string `help:"SSL-Verbindung ('true', 'false', 'skip-verify', 'preferred')" default:"false"`
+	Database     string `short:"D" help:"Database name" default:"onkostar"`
+	IDPrefix     string `help:"Zu verwendender Prefix für anonymisierte IDs. 'WUE', wenn nicht anders angegeben." default:"WUE"`
+	AllTk        bool   `help:"Diagnosen: Erlaube Diagnosen mit allen Tumorkonferenzen, nicht nur Diagnosen mit MTBs"`
+	MtbType      string `help:"MTB-Typ der Tumorkonferenz in Onkostar. Wenn nicht angegeben, Wert: '27'" default:"27"`
+	NoAnon       bool   `help:"Keine ID-Anonymisierung anwenden. Hierbei wird auch das ID-Prefix ignoriert."`
+	SaveDbConfig bool   `help:"Save database username, host, port and database name to config file" default:"false"`
 }
 
 type PatientSelection struct {
@@ -90,6 +90,7 @@ func initCLI() {
 	cli = &CLI{
 		Globals: Globals{},
 	}
+	homedir, _ := os.UserHomeDir()
 	context = kong.Parse(cli,
 		kong.Name("os2cb"),
 		kong.Description("A simple tool to export data from Onkostar into TSV file format for cBioportal"),
@@ -97,6 +98,7 @@ func initCLI() {
 		kong.ConfigureHelp(kong.HelpOptions{
 			Compact: true,
 		}),
+		kong.Configuration(kong.JSON, fmt.Sprintf("%s/.osdb-config.json", homedir)),
 	)
 }
 
@@ -106,6 +108,29 @@ func main() {
 
 	gocsv.SetCSVWriter(getCsvWriter(cli.ExportPatients.Csv || cli.ExportSamples.Csv))
 	gocsv.SetCSVReader(getCsvReader(cli.ExportPatients.Csv || cli.ExportSamples.Csv))
+
+	if cli.Globals.SaveDbConfig {
+		out := fmt.Sprintf(`{
+  "user": "%s",
+  "host": "%s",
+  "port": "%d",
+  "database": "%s"
+}`,
+			cli.Globals.User,
+			cli.Globals.Host,
+			cli.Globals.Port,
+			cli.Globals.Database,
+		)
+		homedir, err1 := os.UserHomeDir()
+		filename := fmt.Sprintf("%s/.osdb-config.json", homedir)
+		err2 := os.WriteFile(filename, []byte(out), 0644)
+
+		if err1 != nil || err2 != nil {
+			log.Fatalln(fmt.Errorf("error writing config file"))
+			return
+		}
+		fmt.Printf("config file written to %s\n", filename)
+	}
 
 	// Check PatientIDs on stdin used in bash pipe
 	if cli.FromStdIn {

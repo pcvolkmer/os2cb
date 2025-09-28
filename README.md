@@ -24,6 +24,7 @@ Flags:
       --all-tk                 Diagnosen: Erlaube Diagnosen mit allen Tumorkonferenzen, nicht nur Diagnosen mit MTBs
       --mtb-type="27"          MTB-Typ der Tumorkonferenz in Onkostar. Wenn nicht angegeben, Wert: '27'
       --no-anon                Keine ID-Anonymisierung anwenden. Hierbei wird auch das ID-Prefix ignoriert.
+      --save-db-config         Save database username, host, port and database name to config file
 
 Patienten
   --patient-id=PATIENT-ID,...    PatientenIDs der zu exportierenden Patienten. Kommagetrennt bei mehreren IDs
@@ -68,6 +69,9 @@ Zusätzliche Optionen für die Befehle `export-patients` und `export-samples`
       --append                       An bestehende Datei anhängen
       --csv                          Verwende CSV-Format anstelle TSV-Format (UTF-16 und Trennung mit ';' zur Verwendung mit MS Excel)
 ```
+
+Die Datenbank-Konfiguration kann mit `--save-db-config` gespeichert werden und muss in Folge nicht mehr
+angegeben werden. Davon ausgenommen ist das Passwort für den Datenbankzugriff.
 
 ### Hinweis zu Passwörtern
 
