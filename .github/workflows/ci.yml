@@ -41,9 +41,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: ${{ github.event_name == 'release' && github.event.action == 'created' }}
         with:
-          draft: 'true'
           make_latest: 'true'
-          generate_release_notes: 'true'
           files: |
             *linux.tar.gz
   windowsbuild:
@@ -66,8 +64,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: ${{ github.event_name == 'release' && github.event.action == 'created' }}
         with:
-          draft: 'true'
           make_latest: 'true'
-          generate_release_notes: 'true'
           files: |
             *win64.zip
