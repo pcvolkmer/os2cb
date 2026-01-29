@@ -2,15 +2,13 @@ ifndef VERBOSE
 .SILENT:
 endif
 
-TAG = $(strip `git describe --tag 2>/dev/null`)
-
-REV = git.`git rev-parse HEAD | cut -c1-7`
-
-ifeq ($(shell echo ${TAG}),)
-	VER := $(REV)
+GITTAG = $(shell git describe --tag --abbrev=0 2>/dev/null | sed -En 's/v(.*)$$/\1/p')
+ifeq ($(findstring -, $(GITTAG)), -)
+    GITDEV = $(shell git describe --tag 2>/dev/null | sed -En 's/v(.*)-([0-9]+)-g([0-9a-f]+)$$/.dev.\2+\3/p')
 else
-	VER := $(TAG)
+    GITDEV = $(shell git describe --tag 2>/dev/null | sed -En 's/v(.*)-([0-9]+)-g([0-9a-f]+)$$/-dev.\2+\3/p')
 endif
+VERSION := "$(GITTAG)$(GITDEV)"
 
 package-all: win-package linux-package
 
@@ -20,7 +18,7 @@ win-package: win-binary-x86_64
 	cp target/os2cb.exe os2cb/
 	cp README.md os2cb/
 	cp LICENSE os2cb/
-	zip os2cb-$(VER)_win64.zip os2cb/* >/dev/null
+	zip os2cb-$(VERSION)_win64.zip os2cb/* >/dev/null
 	rm -rf os2cb || true
 
 .PHONY: linux-package
@@ -29,7 +27,7 @@ linux-package: linux-binary-x86_64
 	cp target/os2cb os2cb/
 	cp README.md os2cb/
 	cp LICENSE os2cb/
-	tar -czvf os2cb-$(VER)_linux.tar.gz os2cb/ >/dev/null
+	tar -czvf os2cb-$(VERSION)_linux.tar.gz os2cb/ >/dev/null
 	rm -rf os2cb || true
 
 binary-all: win-binary-x86_64 linux-binary-x86_64

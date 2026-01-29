@@ -1,27 +1,27 @@
-name: Create release and upload assets
+name: release-please
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [ 'master' ]
+
+permissions:
+  contents: read
 
 jobs:
-  build:
+  release-please:
+    name: run release-please
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/create-github-app-token@v2
+        id: app-token
         with:
-          go-version: '1.25'
-      - run: go test
-      - run: make package-all
-      - name: Release
-        uses: softprops/action-gh-release@v2
-        if: startsWith(github.ref, 'refs/tags/')
+          app-id: ${{ secrets.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      - uses: googleapis/release-please-action@v4
         with:
-          draft: 'true'
-          make_latest: 'true'
-          generate_release_notes: 'true'
-          files: |
-            *linux.tar.gz
-            *win64.zip
+          token: ${{ steps.app-token.outputs.token }}
