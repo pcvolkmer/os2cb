@@ -6,20 +6,12 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
-
-func contains(patientIds []string, patientID string) bool {
-	for _, elem := range patientIds {
-		if elem == patientID {
-			return true
-		}
-	}
-	return false
-}
 
 type BrowserType int8
 
@@ -62,7 +54,7 @@ func NewBrowser(patientIds []string, checkSampleIds bool, db *sql.DB) *Browser {
 		var patientIds []string
 		for _, id := range ids {
 			id = strings.TrimSpace(id)
-			if !contains(patientIds, id) {
+			if !slices.Contains(patientIds, id) {
 				patientIds = append(patientIds, id)
 				browser.patientIds = patientIds
 			}

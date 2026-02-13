@@ -46,9 +46,9 @@ func WriteFile[D PatientData | SampleData](filename string, data []D) error {
 
 	if output, err := gocsv.MarshalString(data); err == nil {
 		// Prepend CSV comments bc cBioportal will result in errors without them
-		if reflect.TypeOf(data) == reflect.TypeOf([]PatientData{}) {
+		if reflect.TypeFor[[]D]() == reflect.TypeFor[[]PatientData]() {
 			output = prefixDataClinicalPatient + output
-		} else if reflect.TypeOf(data) == reflect.TypeOf([]SampleData{}) {
+		} else if reflect.TypeFor[[]D]() == reflect.TypeFor[[]SampleData]() {
 			output = prefixDataClinicalSample + output
 		}
 
